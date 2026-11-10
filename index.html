@@ -311,7 +311,8 @@ const ORIGENS = {
   CAMPANHA:{nome:'Campanhas', longo:'Ações originadas em campanhas'},
   ACIDENTE:{nome:'Acidentes', longo:'Ações de investigação de acidentes'}
 };
-const ABAS = [['geral','Visão geral'],['CIPA','CIPA'],['AUD','Auditoria Comportamental'],['COMITE','Comitê de Segurança']];
+const ABAS = [['geral','Visão geral'],['CIPA','CIPA'],['AUD','Auditoria Comportamental'],['COMITE','Comitê de Segurança'],['CAMPANHA','Campanhas'],['ACIDENTE','Acidentes']];
+const ABAS_ORIGEM = ABAS.slice(1).map(x=>x[0]);
 const COR = {concluida:'#2BB673', andamento:'#4C8DF0', atraso:'#E85D5D'};
 const STX = {executada:['Concluída','p-ok'], exec_atraso:['Concluída c/ atraso','p-ok'], andamento:['Em andamento','p-and'], atrasada:['Atrasada','p-atr'], sem_data:['Sem data definida','p-sd']};
 const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -413,7 +414,7 @@ function comissoes(){
   const ks = ['CIPA','AUD','COMITE','CAMPANHA','ACIDENTE'];
   return `<div class="tile c6"><h3>Por origem <small>clique para abrir</small></h3>
     ${ks.map(k => { const c = cont(filtrar(ACOES.filter(a=>a.o===k))); if(!c.total) return '';
-      const tab = ['CIPA','AUD','COMITE'].includes(k);
+      const tab = ABAS_ORIGEM.includes(k);
       return `<div class="org click" ${tab?`data-tab="${k}"`:`data-origem="${k}"`}>
         <div><div class="t">${ORIGENS[k].nome}</div>
         <div class="s"><b>${c.total}</b> ações · <b style="color:var(--atr)">${c.atraso}</b> em atraso · <b style="color:var(--and)">${c.andamento}</b> em andamento</div></div>
@@ -636,8 +637,8 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') fechar(); });
 document.getElementById('hoje').textContent = HOJE.toLocaleDateString('pt-BR');
 if(PACOTE.gerado_em) document.getElementById('atual').textContent = new Date(PACOTE.gerado_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 const h = (location.hash||'').slice(1).toUpperCase();
-if(['CIPA','AUD','COMITE'].includes(h)) aba = h;
-window.addEventListener('hashchange', () => { const k=(location.hash||'').slice(1).toUpperCase(); const n=['CIPA','AUD','COMITE'].includes(k)?k:'geral'; if(n!==aba){aba=n;render();} });
+if(ABAS_ORIGEM.includes(h)) aba = h;
+window.addEventListener('hashchange', () => { const k=(location.hash||'').slice(1).toUpperCase(); const n=ABAS_ORIGEM.includes(k)?k:'geral'; if(n!==aba){aba=n;render();} });
 render();
 </script>
 </body>
