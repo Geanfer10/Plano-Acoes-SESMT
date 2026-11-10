@@ -306,6 +306,52 @@ svg:hover .barra:not(:hover) .bar{opacity:.55}
 .acts .btn{padding:8px 14px;font-size:12.5px}
 .copok{font-size:12px;color:var(--ok);font-weight:600}
 @media(max-width:640px){.ac-x .grid{grid-template-columns:1fr 1fr}}
+
+/* ===== faixa estilo bolsa ===== */
+.ticker{display:flex;align-items:stretch;height:40px;border-top:1px solid rgba(255,255,255,.7);background:rgba(255,255,255,.35);overflow:hidden}
+.ticker[hidden]{display:none}
+.tk-lbl{flex:none;display:flex;align-items:center;gap:9px;padding:0 18px 0 32px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff;
+  background:linear-gradient(90deg,#C2410C,#E08A1E);box-shadow:6px 0 16px rgba(0,0,0,.12);position:relative;z-index:2;clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%);padding-right:28px}
+.tk-lbl b{background:rgba(255,255,255,.25);border-radius:10px;padding:1px 8px;font-size:12px}
+.tk-pulse{width:8px;height:8px;border-radius:50%;background:#fff;animation:pulso 1.4s ease-out infinite}
+@keyframes pulso{0%{box-shadow:0 0 0 0 rgba(255,255,255,.8)}100%{box-shadow:0 0 0 10px rgba(255,255,255,0)}}
+.tk-vp{flex:1;overflow:hidden;position:relative;-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
+.tk-track{display:flex;width:max-content;height:100%;animation:corre 40s linear infinite}
+.ticker:hover .tk-track{animation-play-state:paused}
+@keyframes corre{to{transform:translateX(-50%)}}
+.tk-half{display:flex;align-items:center;height:100%}
+.tk{display:inline-flex;align-items:center;gap:10px;border:0;background:none;padding:6px 12px;margin:0 4px;border-radius:9px;cursor:pointer;white-space:nowrap;font-family:inherit;font-size:12.5px;color:var(--txt);transition:background .15s,transform .15s}
+.tk:hover{background:#fff;transform:scale(1.04);box-shadow:0 6px 16px rgba(31,80,55,.18)}
+.tk-d{font-weight:800;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px}
+.tk.u1 .tk-d{color:#DC2626}.tk.u2 .tk-d{color:#D97706}.tk.u3 .tk-d{color:#2563EB}
+.tk-n{font-weight:700;color:var(--sub)}
+.tk-t{font-weight:600}
+.tk-r{color:var(--sub);font-size:11.5px}
+.tk-sep{color:rgba(18,38,27,.25);font-size:9px;margin:0 6px}
+@media (prefers-reduced-motion:reduce){.tk-track{animation-duration:200s !important}}
+@media(max-width:640px){.tk-lbl{padding-left:16px;font-size:10.5px}.tk-r{display:none}}
+
+/* ===== tempo para concluir ===== */
+.tm-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.tm-v{font-size:15px;color:var(--sub);font-weight:600}
+.tm-v span{font-size:44px;font-weight:700;color:var(--txt);line-height:1;margin-right:4px}
+.tm-l{font-size:12px;color:var(--sub);margin-top:4px}
+.tm-l b{color:var(--txt)}
+.tm-p{text-align:right}
+.tm-p .num{font-size:28px;font-weight:700;color:var(--ok)}
+.tm-tend{font-size:12.5px;color:var(--sub);margin:12px 0 4px;padding:8px 12px;background:rgba(255,255,255,.55);border-radius:10px}
+.tm-tend b{color:var(--txt)}
+.tend{font-weight:700}.tend.ok{color:var(--ok)}.tend.bad{color:var(--atr)}
+.tys{display:flex;gap:12px;align-items:flex-end;height:150px;margin-top:14px}
+.ty{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;cursor:pointer;border-radius:10px;padding:4px 2px;transition:transform .25s cubic-bezier(.2,.9,.25,1.25),background .15s}
+.ty:hover{transform:translateY(-4px) scale(1.05);background:rgba(255,255,255,.8);box-shadow:0 10px 22px -10px rgba(31,80,55,.3)}
+.ty b{font-size:13px}
+.tyb{flex:1;width:60%;max-width:46px;display:flex;align-items:flex-end;background:rgba(18,38,27,.05);border-radius:7px;overflow:hidden}
+.tyb span{width:100%;background:linear-gradient(180deg,#34C77B,#1E9350);border-radius:7px}
+.ty em{font-style:normal;font-size:12px;font-weight:700;color:var(--txt)}
+.ty small{font-size:10.5px;color:var(--mute)}
+.locs{grid-template-columns:repeat(3,1fr)}
+@media(max-width:1180px){.locs{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -317,7 +363,9 @@ svg:hover .barra:not(:hover) .bar{opacity:.55}
   </div>
   <nav class="nav" id="nav"></nav>
   <div class="stamp">Planilha atualizada em <b id="atual">—</b><br>Situação calculada em <b id="hoje"></b></div>
-</div></header>
+</div>
+  <div class="ticker" id="ticker" hidden></div>
+</header>
 
 <main id="main"></main>
 
@@ -557,7 +605,7 @@ function barraFiltro(){
 
 const FAIXAS = [['ate90','Até 3 meses',0,90,'#F2C14E'],['90a180','3 a 6 meses',90,180,'#EE9B3B'],['180a365','6 meses a 1 ano',180,365,'#E5703A'],['mais365','Mais de 1 ano',365,1e9,'#C93C3C']];
 const idade = a => a.do ? Math.round((HOJE-D(a.do))/DIA) : null;
-let ULT = {faixas:{}, locais:{}, mov:{}};
+let ULT = {faixas:{}, locais:{}, mov:{}, tempo:{}};
 
 function idadeTile(L, span){
   const P = L.filter(a=>a.grupo!=='concluida'), tot = P.length;
@@ -587,9 +635,77 @@ function locaisTile(L, span){
   </div>`;
 }
 
+/* ---------- faixa "vencem nos próximos 30 dias" ---------- */
+function renderTicker(){
+  const el = document.getElementById('ticker');
+  const V = escopoAba().filter(a => a.s==='andamento' && a.prev)
+    .map(a => ({a, d: Math.round((D(a.prev)-HOJE)/DIA)}))
+    .filter(x => x.d>=0 && x.d<=30).sort((x,y)=>x.d-y.d);
+  if(!V.length){ el.hidden = true; return; }
+  el.hidden = false;
+  const urg = d => d<=7 ? 'u1' : d<=15 ? 'u2' : 'u3';
+  const quando = d => d===0 ? 'vence HOJE' : d===1 ? 'vence amanhã' : `vence em ${d} dias`;
+  const item = x => `<button class="tk ${urg(x.d)}" data-tk="${x.a.n}" title="Clique para abrir a ação">
+      <span class="tk-d">${x.d<=7?'▼':'●'} ${quando(x.d)}</span>
+      <span class="tk-n num">Nº ${x.a.n}</span>
+      <span class="tk-t">${esc(x.a.desc.length>70?x.a.desc.slice(0,68)+'…':x.a.desc)}</span>
+      <span class="tk-r">${esc(x.a.dep)} · ${fmt(x.a.prev)}</span></button>`;
+  const bloco = V.map(item).join('<span class="tk-sep">◆</span>') + '<span class="tk-sep">◆</span>';
+  el.innerHTML = `<div class="tk-lbl"><span class="tk-pulse"></span>Vencem nos próximos 30 dias<b class="num">${V.length}</b></div>
+    <div class="tk-vp"><div class="tk-track"><div class="tk-half">${bloco}</div><div class="tk-half" aria-hidden="true">${bloco}</div></div></div>`;
+  // repete o bloco até cobrir a largura da tela, para o giro ficar contínuo
+  const vp = el.querySelector('.tk-vp'), halves = el.querySelectorAll('.tk-half');
+  let guard = 0;
+  while(halves[0].scrollWidth < vp.clientWidth && guard++ < 12){ halves.forEach(h => h.insertAdjacentHTML('beforeend', bloco)); }
+  const w = halves[0].scrollWidth;
+  el.querySelector('.tk-track').style.animationDuration = Math.max(20, w/45) + 's';
+  el.querySelectorAll('[data-tk]').forEach(b => b.onclick = () => {
+    const x = V.find(v => String(v.a.n)===b.dataset.tk);
+    gaveta(`Ação nº ${x.a.n} · ${quando(x.d)}`, [x.a], 'todas', '');
+    expandir(document.querySelector('#lista .ac'));
+  });
+}
+
+/* ---------- tempo para concluir ---------- */
+function tempoTile(L, span){
+  const C = L.filter(a => a.grupo==='concluida' && a.do && a.term)
+    .map(a => ({a, d: Math.max(0, Math.round((D(a.term)-D(a.do))/DIA))}));
+  const media = arr => arr.length ? Math.round(arr.reduce((s,x)=>s+x.d,0)/arr.length) : null;
+  const mediana = arr => { if(!arr.length) return null; const v=arr.map(x=>x.d).sort((a,b)=>a-b); return v[Math.floor(v.length/2)]; };
+  const m = media(C), md = mediana(C);
+  const noPrazo = L.filter(a=>a.s==='executada').length, conc = L.filter(a=>a.grupo==='concluida').length;
+  const a12 = new Date(HOJE - 365*DIA), a24 = new Date(HOJE - 730*DIA);
+  const ult = C.filter(x => D(x.a.term) > a12), ant = C.filter(x => D(x.a.term) > a24 && D(x.a.term) <= a12);
+  const mu = media(ult), ma = media(ant);
+  let tend = '';
+  if(mu!==null && ma!==null){
+    const df = mu - ma;
+    tend = df<0 ? `<span class="tend ok">▼ ${-df} dias mais rápido</span> que nos 12 meses anteriores (${ma} dias)`
+         : df>0 ? `<span class="tend bad">▲ ${df} dias mais lento</span> que nos 12 meses anteriores (${ma} dias)`
+         : `igual aos 12 meses anteriores`;
+  }
+  const anos = {}; C.forEach(x => { const y = x.a.term.slice(0,4); (anos[y] ??= []).push(x); });
+  ULT.tempo = {};
+  const ys = Object.keys(anos).sort();
+  const mx = Math.max(1, ...ys.map(y => media(anos[y])));
+  const barras = ys.map(y => { const v = media(anos[y]); ULT.tempo[y] = ['Concluídas em '+y, anos[y].map(x=>x.a)];
+    return `<div class="ty" data-ano-conc="${y}" title="${anos[y].length} ações concluídas em ${y} · clique para ver">
+      <b class="num">${v}</b><div class="tyb"><span style="height:${v*100/mx}%"></span></div><em>${y}</em><small>${anos[y].length} ações</small></div>`; }).join('');
+  return `<div class="tile ${span}"><h3>Tempo para concluir uma ação <small>da data de origem até o término</small></h3>
+    ${C.length ? `<div class="tm-top">
+        <div><div class="tm-v"><span class="num">${m}</span> dias</div><div class="tm-l">tempo médio${md!==null?` · metade conclui em até <b>${md}</b> dias`:''}</div></div>
+        <div class="tm-p"><div class="num">${pct(noPrazo,conc)}%</div><div class="tm-l">concluídas<br>no prazo</div></div>
+      </div>
+      ${mu!==null?`<div class="tm-tend">Últimos 12 meses: <b>${mu} dias</b>${tend?' · '+tend:''}</div>`:''}
+      <div class="tys">${barras}</div><div class="tm-l" style="margin-top:6px">média de dias por ano de conclusão · clique numa barra para ver as ações</div>`
+      : '<div class="empty">Ainda não há ações concluídas com datas completas.</div>'}
+  </div>`;
+}
+
 /* ---------- página ---------- */
 function render(){
   renderNav();
+  renderTicker();
   const L = escopo(), c = cont(L);
   const geral = aba==='geral';
   const titulo = geral ? 'Visão geral do plano' : ORIGENS[aba].nome;
@@ -605,8 +721,9 @@ function render(){
       ${geral ? movimentacao(escopoAba()) : ''}
       ${departamentos(L, geral ? 'c6' : 'c7')}
       ${geral ? '' : atencao(L,'c5')}
-      ${idadeTile(L,'c5')}
-      ${locaisTile(L,'c7')}
+      ${idadeTile(L,'c6')}
+      ${tempoTile(L,'c6')}
+      ${locaisTile(L,'c12')}
       ${geral ? atencao(L,'c12') : ''}
     </section>
     <div class="foot">Critérios iguais aos da planilha (coluna STATUS), recalculados com a data de hoje:
@@ -623,6 +740,7 @@ function render(){
   });
   document.querySelectorAll('[data-dep]').forEach(el => el.onclick = () => abrir('pendente', el.dataset.dep));
   document.querySelectorAll('[data-mv]').forEach(el => el.onclick = () => { const [l,it]=ULT.mov[el.dataset.mv]; if(it.length) gaveta(l, it, 'todas', ''); });
+  document.querySelectorAll('[data-ano-conc]').forEach(el => el.onclick = () => { const [l,it]=ULT.tempo[el.dataset.anoConc]; if(it.length) gaveta(l, it, 'concluidas', ''); });
   document.querySelectorAll('[data-faixa]').forEach(el => el.onclick = () => { const [l,it]=ULT.faixas[el.dataset.faixa]; gaveta('Pendências · '+l.toLowerCase(), it, 'abertas', ''); });
   document.querySelectorAll('[data-local]').forEach(el => el.onclick = () => { const l=el.dataset.local; gaveta('Pendências · '+l, ULT.locais[l], 'abertas', ''); });
   document.querySelectorAll('[data-n]').forEach(el => el.onclick = () => {
