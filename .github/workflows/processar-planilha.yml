@@ -1,0 +1,51 @@
+name: Processar planilha de ações SESMT
+
+on:
+  push:
+    paths:
+      - "uploads/*.xlsx"
+      - "uploads/*.xlsm"
+      - "scripts/extract.py"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: processar-planilha
+  cancel-in-progress: false
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências
+        run: pip install openpyxl
+
+      - name: Gerar dados/acoes.json a partir da planilha mais recente
+        run: |
+          shopt -s nullglob
+          arquivos=(uploads/*.xlsx uploads/*.xlsm)
+          if [ ${#arquivos[@]} -eq 0 ]; then echo "Nenhuma planilha em uploads/"; exit 1; fi
+          ultimo=$(for f in "${arquivos[@]}"; do echo "$(git log -1 --format=%ct -- "$f") $f"; done | sort -nr | head -1 | cut -d" " -f2-)
+          echo "Processando $ultimo"
+          python scripts/extract.py --file "$ultimo" --out dados/acoes.json
+
+      - name: Commit dos dados atualizados
+        run: |
+          git config user.name "sesmt-bot"
+          git config user.email "sesmt-bot@users.noreply.github.com"
+          git add dados/
+          git diff --cached --quiet || git commit -m "Atualiza dados de ações SESMT ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+          git pull --rebase
+          git push
