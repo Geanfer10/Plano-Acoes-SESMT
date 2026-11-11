@@ -397,13 +397,13 @@ mark{background:#FDE68A;color:inherit;border-radius:3px;padding:0 1px}
 .fth:hover i{opacity:1}
 .fvazio{margin-top:6px;border:1.5px dashed rgba(18,38,27,.15);border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--sub)}
 .fvazio b{color:var(--txt);font-family:var(--mono);font-size:12px}
-.lb{position:fixed;inset:0;z-index:80;background:rgba(5,15,10,.86);display:none;align-items:center;justify-content:center;padding:30px}
-.lb.on{display:flex;animation:abre .2s ease}
-.lb figure{max-width:min(1100px,90vw);max-height:90vh;display:flex;flex-direction:column;align-items:center;gap:10px;margin:0}
-.lb img{max-width:100%;max-height:80vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.lb figcaption{color:#E5EFE8;font-size:13px;text-align:center;max-width:800px}
-.lb button{position:absolute;border:0;background:rgba(255,255,255,.14);color:#fff;width:46px;height:46px;border-radius:50%;font-size:24px;cursor:pointer}
-.lb button:hover{background:rgba(255,255,255,.28)}
+.lbx{position:fixed;inset:0;z-index:80;background:rgba(5,15,10,.86);display:none;align-items:center;justify-content:center;padding:30px}
+.lbx.on{display:flex;animation:abre .2s ease}
+.lbx figure{max-width:min(1100px,90vw);max-height:90vh;display:flex;flex-direction:column;align-items:center;gap:10px;margin:0}
+.lbx img{max-width:100%;max-height:80vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.lbx figcaption{color:#E5EFE8;font-size:13px;text-align:center;max-width:800px}
+.lbx button{position:absolute;border:0;background:rgba(255,255,255,.14);color:#fff;width:46px;height:46px;border-radius:50%;font-size:24px;cursor:pointer}
+.lbx button:hover{background:rgba(255,255,255,.28)}
 .lb-x{top:20px;right:20px;font-size:18px !important}.lb-p{left:20px;top:50%}.lb-n{right:20px;top:50%}
 
 .top-in{gap:18px;flex-wrap:nowrap}
@@ -461,6 +461,30 @@ main.wide{max-width:1880px}
 .logo-sst{width:50px;height:auto;filter:drop-shadow(0 4px 10px rgba(30,147,80,.35))}
 .logo-sst{transition:transform .6s cubic-bezier(.2,.9,.25,1.2)}
 .brand:hover .logo-sst{transform:scale(1.1)}
+
+/* ===== filtro novo ===== */
+.fhist{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--sub);cursor:pointer;user-select:none;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.5)}
+.fhist input{accent-color:var(--brand2);width:15px;height:15px}
+.fhist b{color:var(--txt)}
+.fbar .fsel{max-width:220px}
+/* ===== status igual ao Excel ===== */
+.stx-wrap{overflow:auto}
+table.stxt{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px}
+.stxt th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);text-align:left;padding:10px 12px;border-bottom:2px solid rgba(30,147,80,.25);white-space:nowrap;background:rgba(30,147,80,.06)}
+.stxt th:first-child{border-radius:10px 0 0 0}.stxt th:last-child{border-radius:0 10px 0 0}
+.stxt th.num,.stxt td.num{text-align:right}
+.stxt td{padding:10px 12px;border-bottom:1px solid rgba(18,38,27,.06);white-space:nowrap}
+.stxt td:first-child{font-weight:600}
+.stxt td:first-child i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:9px;vertical-align:-1px}
+.stxt td.num{font-family:var(--mono);font-weight:700}
+.stxt td.tot{background:rgba(30,147,80,.06);font-size:15px}
+.stxt td.zero{color:var(--mute);font-weight:400}
+.stxt td.stc{cursor:pointer;border-radius:8px;transition:background .12s,transform .15s}
+.stxt td.stc:hover{background:#fff;box-shadow:0 6px 16px -6px rgba(31,80,55,.35);color:var(--brand)}
+.stxt tfoot td{font-weight:800;border-top:2px solid rgba(30,147,80,.25);border-bottom:0;background:rgba(30,147,80,.06)}
+.stxt .barcol{width:24%;min-width:160px;position:relative}
+.stxt td.barcol span{display:inline-block;height:10px;border-radius:5px;vertical-align:middle;max-width:80%}
+.stxt td.barcol em{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--sub);margin-left:8px}
 </style>
 </head>
 <body>
@@ -548,33 +572,39 @@ const cont = L => {
 };
 
 let aba = 'geral', periodo = 90;
-let filtro = {ano:'', de:'', ate:'', base:'do'};
+let filtro = {ano:'', mes:'', local:'', dep:'', hist:false, base:'do'};
 const BASES = {do:'Data de origem', prev:'Data prevista', term:'Data de término'};
-const temFiltro = () => !!(filtro.ano || filtro.de || filtro.ate);
+const MESES_N = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const temFiltro = () => !!(filtro.ano || filtro.mes || filtro.local || filtro.dep);
+const temFiltroData = () => !!(filtro.ano || filtro.mes);
+function passaLD(a){ return (!filtro.local || a.local===filtro.local) && (!filtro.dep || a.dep===filtro.dep); }
 function passaData(a){
-  if(!temFiltro()) return true;
-  const v = a[filtro.base]; if(!v) return false;
-  if(filtro.ano && !v.startsWith(filtro.ano)) return false;
-  if(filtro.de && v < filtro.de) return false;
-  if(filtro.ate && v > filtro.ate) return false;
+  if(!passaLD(a)) return false;
+  if(!temFiltroData()) return true;
+  const v = a.do; if(!v) return false;
+  if(filtro.ano && v.slice(0,4)!==filtro.ano) return false;
+  if(filtro.mes && v.slice(5,7)!==filtro.mes) return false;
   return true;
 }
 const filtrar = L => L.filter(passaData);
+const baseAcoes = () => ACOES.filter(a => filtro.hist || !a.hist);
 function rotuloFiltro(){
-  if(filtro.ano) return 'Ano ' + filtro.ano;
-  if(filtro.de && filtro.ate) return fmt(filtro.de)+' a '+fmt(filtro.ate);
-  if(filtro.de) return 'A partir de '+fmt(filtro.de);
-  if(filtro.ate) return 'Até '+fmt(filtro.ate);
-  return '';
+  const p = [];
+  if(filtro.mes) p.push(MESES_N[+filtro.mes-1] + (filtro.ano?' de '+filtro.ano:' (todos os anos)'));
+  else if(filtro.ano) p.push('Ano ' + filtro.ano);
+  if(filtro.local) p.push('Local: '+filtro.local);
+  if(filtro.dep) p.push('Responsável: '+filtro.dep);
+  return p.join(' · ');
 }
+function rotuloData(){ return filtro.mes ? MESES_N[+filtro.mes-1]+(filtro.ano?' de '+filtro.ano:'') : filtro.ano ? 'ano '+filtro.ano : ''; }
 function intervalo(){
+  if(filtro.ano && filtro.mes){ const y=+filtro.ano, m=+filtro.mes-1; return [new Date(y,m,1), new Date(Math.min(new Date(y,m+1,0), HOJE))]; }
   if(filtro.ano){ const y=+filtro.ano; return [new Date(y,0,1), new Date(Math.min(new Date(y,11,31), HOJE))]; }
-  if(filtro.de || filtro.ate){ return [filtro.de?D(filtro.de):new Date(2022,0,1), filtro.ate?D(filtro.ate):HOJE]; }
   return null;
 }
 let dw = {titulo:'', base:[], sit:'todas', dep:'', q:''};
 
-function escopoAba(){ return (aba==='geral'||aba==='planilha') ? ACOES : ACOES.filter(a=>a.o===aba); }
+function escopoAba(){ const B = baseAcoes(); return (aba==='geral'||aba==='planilha') ? B : B.filter(a=>a.o===aba); }
 function escopo(){ return filtrar(escopoAba()); }
 
 /* ---------- navegação ---------- */
@@ -629,7 +659,7 @@ function kpis(c){
 function comissoes(){
   const ks = ['CIPA','AUD','COMITE','CAMPANHA','ACIDENTE'];
   return `<div class="tile c6"><h3>Por origem <small>clique para abrir</small></h3>
-    ${ks.map(k => { const c = cont(filtrar(ACOES.filter(a=>a.o===k))); if(!c.total) return '';
+    ${ks.map(k => { const c = cont(filtrar(baseAcoes().filter(a=>a.o===k))); if(!c.total) return '';
       const tab = ABAS_ORIGEM.includes(k);
       return `<div class="org click" ${tab?`data-tab="${k}"`:`data-origem="${k}"`}>
         <div><div class="t">${ORIGENS[k].nome}</div>
@@ -647,7 +677,7 @@ function movimentacao(L){
   const em = (s,a,b) => { const d=D(s); return d && d>a && d<=b; };
   const entL = L.filter(a=>em(a.do,ini,fim)), saiL = L.filter(a=>a.grupo==='concluida'&&em(a.term,ini,fim));
   const ent = entL.length, sai = saiL.length;
-  const rotPer = iv ? rotuloFiltro().toLowerCase() : ({30:'nos últimos 30 dias',90:'nos últimos 90 dias',180:'nos últimos 6 meses',365:'nos últimos 12 meses'})[periodo];
+  const rotPer = iv ? 'em '+rotuloData() : ({30:'nos últimos 30 dias',90:'nos últimos 90 dias',180:'nos últimos 6 meses',365:'nos últimos 12 meses'})[periodo];
   ULT.mov = {ent:['Ações que entraram '+rotPer, entL], sai:['Ações concluídas '+rotPer, saiL]};
   const entA = L.filter(a=>em(a.do,ant,ini)).length, saiA = L.filter(a=>a.grupo==='concluida'&&em(a.term,ant,ini)).length;
   const sal = ent-sai, dif = (v,a)=>{const d=v-a; return `antes: ${a} (${d>0?'+':''}${d})`;};
@@ -666,14 +696,14 @@ function movimentacao(L){
       if(v) g+=`<text x="${xx+bw/2}" y="${H-pb-h-4}" font-size="10" fill="#3E5447" text-anchor="middle">${v}</text>`; });
     g+=`<text x="${cx}" y="${H-4}" font-size="10.5" fill="#6B8175" text-anchor="middle">${MES[x.m]}${(ms.length>12&&x.m===0)?' '+String(x.y).slice(2):''}</text>`; });
   return `<div class="tile dark c6"><h3>Movimentação de ações
-      ${iv ? `<span class="sel" style="display:inline-block">${rotuloFiltro()}</span>` : `<select class="sel" id="per">${[[30,'Últimos 30 dias'],[90,'Últimos 90 dias'],[180,'Últimos 6 meses'],[365,'Últimos 12 meses']].map(([v,l])=>`<option value="${v}" ${v===periodo?'selected':''}>${l}</option>`).join('')}</select>`}</h3>
+      ${iv ? `<span class="sel" style="display:inline-block">${rotuloData()}</span>` : `<select class="sel" id="per">${[[30,'Últimos 30 dias'],[90,'Últimos 90 dias'],[180,'Últimos 6 meses'],[365,'Últimos 12 meses']].map(([v,l])=>`<option value="${v}" ${v===periodo?'selected':''}>${l}</option>`).join('')}</select>`}</h3>
     <div class="mv">
       <div class="mvc" data-mv="ent" title="Clique para ver as ações"><div class="l">↑ Entraram</div><div class="n num" style="color:#E35D5D">${ent}</div><div class="s">${dif(ent,entA)}</div></div>
       <div class="mvc" data-mv="sai" title="Clique para ver as ações"><div class="l">↓ Saíram (concluídas)</div><div class="n num" style="color:#2BB673">${sai}</div><div class="s">${dif(sai,saiA)}</div></div>
       <div><div class="l">Saldo</div><div class="n num" style="color:${sal>0?'#D64545':'#1E9350'}">${sal>0?'+':''}${sal}</div><div class="s">${sal>0?'pendências crescendo':sal<0?'pendências diminuindo':'estável'}</div></div>
     </div>
     <svg viewBox="0 0 ${W} ${H}" width="100%" style="margin-top:18px;font-family:var(--mono)">${g}</svg>
-    <div class="leg" style="margin-top:6px"><span><i style="background:#E35D5D"></i>Entraram</span><span><i style="background:#2BB673"></i>Saíram</span><span style="margin-left:auto">clique numa barra para ver as ações · ${iv ? rotuloFiltro().toLowerCase() : 'últimos 12 meses'}</span></div>
+    <div class="leg" style="margin-top:6px"><span><i style="background:#E35D5D"></i>Entraram</span><span><i style="background:#2BB673"></i>Saíram</span><span style="margin-left:auto">clique numa barra para ver as ações · ${iv ? rotuloData() : 'últimos 12 meses'}</span></div>
   </div>`;
 }
 
@@ -701,19 +731,36 @@ function atencao(L, span){
 }
 
 function barraFiltro(){
-  const anos = [...new Set(escopoAba().map(a=>a[filtro.base]).filter(Boolean).map(v=>v.slice(0,4)))].sort();
-  const semData = escopoAba().filter(a=>!a[filtro.base]).length;
+  const B = escopoAba();
+  const anos = [...new Set(B.map(a=>a.do).filter(Boolean).map(v=>v.slice(0,4)))].sort();
+  const comData = B.filter(passaLD).filter(a => (!filtro.ano || (a.do||'').startsWith(filtro.ano)));
+  const mesesCom = new Set(comData.map(a=>(a.do||'').slice(5,7)).filter(Boolean));
+  const locs = [...new Set(B.map(a=>a.local).filter(Boolean))].sort();
+  const deps = [...new Set(B.map(a=>a.dep).filter(Boolean))].sort();
+  const nHist = ACOES.filter(a=>a.hist && (aba==='geral'||aba==='planilha'||a.o===aba)).length;
+  const semData = temFiltroData() ? B.filter(a=>!a.do).length : 0;
   return `<div class="fbar">
     <div class="fgrp"><span class="flb">Ano</span>
-      <div class="seg"><button class="${!filtro.ano&&!filtro.de&&!filtro.ate?'on':''}" data-ano="">Todos</button>${anos.map(y=>`<button class="${filtro.ano===y?'on':''}" data-ano="${y}">${y}</button>`).join('')}</div></div>
-    <div class="fgrp"><span class="flb">Período</span>
-      <input type="date" class="fdate" id="fDe" value="${filtro.de}" max="${filtro.ate||''}"><span class="flb">até</span>
-      <input type="date" class="fdate" id="fAte" value="${filtro.ate}" min="${filtro.de||''}"></div>
-    <div class="fgrp"><span class="flb">Considerar</span>
-      <select class="fsel" id="fBase">${Object.entries(BASES).map(([k,l])=>`<option value="${k}" ${filtro.base===k?'selected':''}>${l}</option>`).join('')}</select></div>
+      <div class="seg"><button class="${!filtro.ano?'on':''}" data-ano="">Todos</button>${anos.map(y=>`<button class="${filtro.ano===y?'on':''}" data-ano="${y}">${y}</button>`).join('')}</div></div>
+    <div class="fgrp"><span class="flb">Mês</span>
+      <select class="fsel" id="fMes"><option value="">Todos os meses</option>${MESES_N.map((m,i)=>{ const v=String(i+1).padStart(2,'0'); return `<option value="${v}" ${filtro.mes===v?'selected':''} ${mesesCom.has(v)||filtro.mes===v?'':'disabled'}>${m}</option>`; }).join('')}</select></div>
+    <div class="fgrp"><span class="flb">Local</span>
+      <select class="fsel" id="fLocal"><option value="">Todos os locais</option>${locs.map(l=>`<option ${filtro.local===l?'selected':''}>${esc(l)}</option>`).join('')}</select></div>
+    <div class="fgrp"><span class="flb">Responsável</span>
+      <select class="fsel" id="fResp"><option value="">Todos os responsáveis</option>${deps.map(d=>`<option ${filtro.dep===d?'selected':''}>${esc(d)}</option>`).join('')}</select></div>
+    ${nHist ? `<label class="fhist" title="Ações antigas da aba CONCLUÍDOS da planilha"><input type="checkbox" id="fHist" ${filtro.hist?'checked':''}><span>Incluir histórico <b>(${nHist})</b></span></label>` : ''}
     ${temFiltro() ? `<button class="flimpa" id="fLimpa">✕ Limpar filtro</button>` : ''}
-    ${temFiltro() ? `<div class="finfo">Mostrando ações com <b>${BASES[filtro.base].toLowerCase()}</b> em <b>${rotuloFiltro().replace(/^Ano /,'')}</b>${semData?` · ${semData} ${semData===1?'ação':'ações'} sem ${BASES[filtro.base].toLowerCase()} ${semData===1?'fica':'ficam'} de fora`:''}</div>` : ''}
+    ${temFiltro() ? `<div class="finfo">Filtrando: <b>${esc(rotuloFiltro())}</b>${temFiltroData()?' · pela data de origem':''}${semData?` · ${semData} ${semData===1?'ação':'ações'} sem data de origem ${semData===1?'fica':'ficam'} de fora`:''}</div>` : ''}
   </div>`;
+}
+function ligarFiltro(){
+  document.querySelectorAll('[data-ano]').forEach(b => b.onclick = () => { filtro.ano = b.dataset.ano; render(); });
+  const on = (id, fn) => { const el = document.getElementById(id); if(el) el.onchange = fn; };
+  on('fMes', e => { filtro.mes = e.target.value; render(); });
+  on('fLocal', e => { filtro.local = e.target.value; render(); });
+  on('fResp', e => { filtro.dep = e.target.value; render(); });
+  on('fHist', e => { filtro.hist = e.target.checked; render(); });
+  const lp = document.getElementById('fLimpa'); if(lp) lp.onclick = () => { filtro = {...filtro, ano:'', mes:'', local:'', dep:''}; render(); };
 }
 
 const FAIXAS = [['ate90','Até 3 meses',0,90,'#F2C14E'],['90a180','3 a 6 meses',90,180,'#EE9B3B'],['180a365','6 meses a 1 ano',180,365,'#E5703A'],['mais365','Mais de 1 ano',365,1e9,'#C93C3C']];
@@ -819,7 +866,7 @@ function tempoTile(L, span){
 let LB = null;
 function lightbox(a, i){
   if(!LB){
-    LB = document.createElement('div'); LB.className='lb'; LB.innerHTML = `<button class="lb-x" aria-label="Fechar">✕</button><button class="lb-p" aria-label="Anterior">‹</button><figure><img alt=""><figcaption></figcaption></figure><button class="lb-n" aria-label="Próxima">›</button>`;
+    LB = document.createElement('div'); LB.className='lbx'; LB.innerHTML = `<button class="lb-x" aria-label="Fechar">✕</button><button class="lb-p" aria-label="Anterior">‹</button><figure><img alt=""><figcaption></figcaption></figure><button class="lb-n" aria-label="Próxima">›</button>`;
     document.body.appendChild(LB);
     LB.onclick = e => { if(e.target===LB || e.target.classList.contains('lb-x')) LB.classList.remove('on'); };
     LB.querySelector('.lb-p').onclick = () => LB._go(-1);
@@ -930,8 +977,6 @@ function renderPlanilha(){
       <input class="search" id="plQ" type="search" placeholder="Filtrar por nº, ação, local, responsável, observação…" value="${esc(TB.q)}">
       <select class="fsel" id="plO"><option value="">Todas as origens</option>${ABAS_ORIGEM.map(k=>`<option value="${k}" ${TB.o===k?'selected':''}>${ORIGENS[k].nome}</option>`).join('')}</select>
       <select class="fsel" id="plS">${Object.entries(ST_FILTRO).map(([k,l])=>`<option value="${k}" ${TB.st===k?'selected':''}>${l}</option>`).join('')}</select>
-      <select class="fsel" id="plD"><option value="">Todos os responsáveis</option>${opts(deps,TB.dep)}</select>
-      <select class="fsel" id="plL"><option value="">Todos os locais</option>${opts(locs,TB.local)}</select>
       <button class="flimpa" id="plX" type="button" ${TB.q||TB.o||TB.st||TB.dep||TB.local?'':'hidden'}>✕ Limpar</button>
     </div>
     <div class="pl-info"><b id="plN"></b><span id="plMsg"></span></div>
@@ -939,16 +984,12 @@ function renderPlanilha(){
   corpoPlanilha();
   const on = (id, ev, fn) => document.getElementById(id)[ev] = fn;
   on('plQ','oninput', e => { TB.q = e.target.value; corpoPlanilha(); document.getElementById('plX').hidden = !(TB.q||TB.o||TB.st||TB.dep||TB.local); });
-  [['plO','o'],['plS','st'],['plD','dep'],['plL','local']].forEach(([id,k]) => on(id,'onchange', e => { TB[k] = e.target.value; renderPlanilha(); }));
+  [['plO','o'],['plS','st']].forEach(([id,k]) => on(id,'onchange', e => { TB[k] = e.target.value; renderPlanilha(); }));
   on('plX','onclick', () => { TB = {...TB, q:'', o:'', st:'', dep:'', local:''}; renderPlanilha(); });
   document.querySelectorAll('.pl th[data-k]').forEach(th => th.onclick = () => { const k=th.dataset.k; TB.asc = TB.k===k ? !TB.asc : true; TB.k = k; renderPlanilha(); });
   on('plCsv','onclick', baixarCSV);
   on('plCopy','onclick', copiarTabela);
-  document.querySelectorAll('[data-ano]').forEach(b => b.onclick = () => { filtro.ano = b.dataset.ano; filtro.de=''; filtro.ate=''; render(); });
-  document.getElementById('fBase').onchange = e => { filtro.base = e.target.value; render(); };
-  document.getElementById('fDe').onchange = e => { filtro.de = e.target.value; filtro.ano=''; render(); };
-  document.getElementById('fAte').onchange = e => { filtro.ate = e.target.value; filtro.ano=''; render(); };
-  const lp = document.getElementById('fLimpa'); if(lp) lp.onclick = () => { filtro = {...filtro, ano:'', de:'', ate:''}; render(); };
+  ligarFiltro();
 }
 function corpoPlanilha(){
   const L = linhasPlanilha(); TB.vis = L;
@@ -988,6 +1029,30 @@ async function copiarTabela(){
   catch(e){ msgPl(' · não foi possível copiar neste navegador'); }
 }
 
+/* ---------- ações por status (formato da tabela dinâmica do Excel) ---------- */
+const ST_EXCEL = [['executada','Executada'],['sem_data','Atraso -ausência de data'],['andamento','Andamento'],['atrasada','Atrasada'],['exec_atraso','Exec+Atraso']];
+const COR_ST = {executada:'#2BB673', exec_atraso:'#8BD3A8', andamento:'#4C8DF0', atrasada:'#E85D5D', sem_data:'#9B87F5'};
+let ULT_ST = {};
+function statusExcel(L){
+  const geral = !ORIGENS[aba];
+  const cols = geral ? ABAS_ORIGEM.filter(k => L.some(a=>a.o===k)) : [aba];
+  const cnt = (s,o) => L.filter(a => a.s===s && (!o || a.o===o)).length;
+  const linhas = ST_EXCEL.map(([s,l]) => ({s, l, tot: cnt(s)})).sort((a,b)=>b.tot-a.tot);
+  ULT_ST = {};
+  const cel = (s,o,v) => { const k = s+'|'+(o||''); ULT_ST[k] = L.filter(a => (!s || a.s===s) && (!o || a.o===o));
+    return v ? `<td class="num stc" data-st="${k}">${v}</td>` : `<td class="num zero">–</td>`; };
+  const nHist = filtro.hist ? L.filter(a=>a.hist).length : 0;
+  return `<div class="tile c12 stx"><h3>Ações por status <small>mesmos nomes e contagem da tabela dinâmica da planilha · clique num número para ver as ações</small></h3>
+    <div class="stx-wrap"><table class="stxt">
+      <thead><tr><th>Rótulos de linha</th>${geral?cols.map(k=>`<th class="num">${ORIGENS[k].nome}</th>`).join(''):''}<th class="num">${geral?'Total geral':'Contagem de STATUS'}</th><th class="barcol"></th></tr></thead>
+      <tbody>${linhas.map(r => `<tr><td><i style="background:${COR_ST[r.s]}"></i>${r.l}</td>${geral?cols.map(k=>cel(r.s,k,cnt(r.s,k))).join(''):''}${cel(r.s,'',r.tot).replace('class="num','class="num tot')}
+        <td class="barcol"><span style="width:${L.length?r.tot*100/L.length:0}%;background:${COR_ST[r.s]}"></span><em>${pct(r.tot,L.length)}%</em></td></tr>`).join('')}</tbody>
+      <tfoot><tr><td>Total geral</td>${geral?cols.map(k=>cel('',k,L.filter(a=>a.o===k).length)).join(''):''}${cel('','',L.length)}<td class="barcol"></td></tr></tfoot>
+    </table></div>
+    ${nHist ? `<div class="tm-l" style="margin-top:8px">Inclui ${nHist} ações do histórico (aba CONCLUÍDOS). Desmarque "Incluir histórico" para ver exatamente os números da tabela dinâmica.</div>` : ''}
+  </div>`;
+}
+
 /* ---------- página ---------- */
 function render(){
   renderNav();
@@ -1004,9 +1069,10 @@ function render(){
     ${barraFiltro()}
     <section class="bento">
       ${hero(L,c)}
-      ${geral ? comissoes() : movimentacao(escopoAba())}
+      ${geral ? comissoes() : movimentacao(escopoAba().filter(passaLD))}
       <div class="kpirow c12">${kpis(c)}</div>
-      ${geral ? movimentacao(escopoAba()) : ''}
+      ${statusExcel(L)}
+      ${geral ? movimentacao(escopoAba().filter(passaLD)) : ''}
       ${departamentos(L, geral ? 'c6' : 'c7')}
       ${geral ? '' : atencao(L,'c5')}
       ${idadeTile(L,'c6')}
@@ -1024,23 +1090,20 @@ function render(){
   document.querySelectorAll('[data-open]').forEach(el => el.onclick = () => abrir(el.dataset.open));
   document.querySelectorAll('[data-tab]').forEach(el => el.onclick = () => irPara(el.dataset.tab));
   document.querySelectorAll('[data-origem]').forEach(el => el.onclick = () => {
-    const k=el.dataset.origem; gaveta(ORIGENS[k].nome, filtrar(ACOES.filter(a=>a.o===k)), 'todas', '');
+    const k=el.dataset.origem; gaveta(ORIGENS[k].nome, filtrar(baseAcoes().filter(a=>a.o===k)), 'todas', '');
   });
   document.querySelectorAll('[data-dep]').forEach(el => el.onclick = () => abrir('pendente', el.dataset.dep));
   document.querySelectorAll('[data-mv]').forEach(el => el.onclick = () => { const [l,it]=ULT.mov[el.dataset.mv]; if(it.length) gaveta(l, it, 'todas', ''); });
   document.querySelectorAll('[data-ano-conc]').forEach(el => el.onclick = () => { const [l,it]=ULT.tempo[el.dataset.anoConc]; if(it.length) gaveta(l, it, 'concluidas', ''); });
+  document.querySelectorAll('[data-st]').forEach(el => el.onclick = () => { const [s,o] = el.dataset.st.split('|'); const it = ULT_ST[el.dataset.st];
+    const nome = s ? ST_EXCEL.find(x=>x[0]===s)[1] : 'Todas as ações'; gaveta(nome + (o?' · '+ORIGENS[o].nome:''), it, 'todas', ''); });
   document.querySelectorAll('[data-faixa]').forEach(el => el.onclick = () => { const [l,it]=ULT.faixas[el.dataset.faixa]; gaveta('Pendências · '+l.toLowerCase(), it, 'abertas', ''); });
   document.querySelectorAll('[data-local]').forEach(el => el.onclick = () => { const l=el.dataset.local; gaveta('Pendências · '+l, ULT.locais[l], 'abertas', ''); });
   document.querySelectorAll('[data-n]').forEach(el => el.onclick = () => {
     const a = ACOES.find(x=>String(x.n)===el.dataset.n); gaveta('Ação nº '+a.n, [a], 'todas', '');
   });
   const per = document.getElementById('per'); if(per) per.onchange = e => { periodo=+e.target.value; render(); };
-  document.querySelectorAll('[data-ano]').forEach(b => b.onclick = () => { filtro.ano = b.dataset.ano; filtro.de=''; filtro.ate=''; render(); });
-  const fb = document.getElementById('fBase'); fb.onchange = e => { filtro.base = e.target.value; render(); };
-  const fd = document.getElementById('fDe'), fa = document.getElementById('fAte');
-  fd.onchange = e => { filtro.de = e.target.value; filtro.ano=''; render(); };
-  fa.onchange = e => { filtro.ate = e.target.value; filtro.ano=''; render(); };
-  const lp = document.getElementById('fLimpa'); if(lp) lp.onclick = () => { filtro = {...filtro, ano:'', de:'', ate:''}; render(); };
+  ligarFiltro();
 }
 
 /* ---------- gaveta de ações ---------- */
@@ -1058,7 +1121,7 @@ function gaveta(titulo, base, sit, dep){
   dw = {titulo, base, sit, dep, q:''};
   document.getElementById('busca').value='';
   document.getElementById('drT').textContent = titulo;
-  document.getElementById('drS').textContent = (!ORIGENS[aba] ? 'Todas as origens' : ORIGENS[aba].nome) + (temFiltro() ? ' · '+rotuloFiltro()+' ('+BASES[filtro.base].toLowerCase()+')' : '');
+  document.getElementById('drS').textContent = (!ORIGENS[aba] ? 'Todas as origens' : ORIGENS[aba].nome) + (temFiltro() ? ' · '+rotuloFiltro() : '');
   const deps = [...new Set(base.map(a=>a.dep))].sort();
   document.getElementById('fDep').innerHTML = `<option value="">Todos os departamentos</option>` + deps.map(d=>`<option ${d===dep?'selected':''}>${esc(d)}</option>`).join('');
   lista();
