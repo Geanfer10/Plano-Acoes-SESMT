@@ -560,6 +560,16 @@ table.stxt{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px
 .c8 .locs{flex:1;align-content:space-evenly;row-gap:14px}
 .c8 .loc{padding:9px 10px}
 .c8 .loc .lb{height:10px}
+
+/* ===== janela de ações no centro da tela ===== */
+.dr{top:50% !important;left:50% !important;right:auto !important;bottom:auto !important;width:min(1000px,94vw) !important;height:min(86vh,900px);
+  border-radius:22px;overflow:hidden;border:1px solid #fff !important;box-shadow:0 40px 100px -20px rgba(15,40,28,.45) !important;
+  transform:translate(-50%,-46%) scale(.96) !important;opacity:0;pointer-events:none;transition:transform .28s cubic-bezier(.2,.9,.25,1.1),opacity .2s !important}
+.dr.on{transform:translate(-50%,-50%) scale(1) !important;opacity:1;pointer-events:auto}
+.ov{backdrop-filter:blur(5px) !important;background:rgba(15,40,28,.28) !important}
+.dr-h{padding:20px 26px 14px}
+.tools .fsel{max-width:240px}
+@media(max-width:700px){.dr{width:100vw !important;height:100vh;border-radius:0}}
 </style>
 </head>
 <body>
@@ -584,6 +594,7 @@ table.stxt{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px
     <div class="row"><div><h4 id="drT"></h4><p id="drS"></p></div><button class="x" id="drX" aria-label="Fechar">✕</button></div>
     <div class="tools">
       <div class="seg" id="seg"></div>
+      <select class="fsel" id="fOrig"></select>
       <select class="fsel" id="fDep"></select>
       <input class="search" id="busca" type="search" placeholder="Buscar ação, local, observação…">
     </div>
@@ -738,16 +749,16 @@ function kpi(id,nome,v,cor,p,det,icone){
 }
 
 function kpis(c){
-  return kpi('concluida','Concluídas',c.concluida,'var(--ok)',pct(c.concluida,c.total)+'% do total',
-      `<b>${c.executada}</b> no prazo · <b>${c.exec_atraso}</b> com atraso`,'concluida')
+  return kpi('atraso','Em atraso',c.atraso,'var(--atr)',pct(c.atraso,c.total)+'% do total',
+      `data prevista já vencida`,'atraso')
    + kpi('pendente','Pendentes',c.pendente,'#E08A1E',pct(c.pendente,c.total)+'% do total',
       `<b>${c.andamento}</b> andamento · <b>${c.atraso}</b> atraso · <b>${c.semdata}</b> sem data`,'pendente')
    + kpi('andamento','Em andamento',c.andamento,'var(--and)',pct(c.andamento,c.total)+'% do total',
       `dentro do prazo previsto`,'andamento')
-   + kpi('atraso','Em atraso',c.atraso,'var(--atr)',pct(c.atraso,c.total)+'% do total',
-      `data prevista já vencida`,'atraso')
    + kpi('semdata','Sem data definida',c.semdata,'#7C6BE8',pct(c.semdata,c.total)+'% do total',
-      `aguardando definição de prazo`,'semdata');
+      `aguardando definição de prazo`,'semdata')
+   + kpi('concluida','Concluídas',c.concluida,'var(--ok)',pct(c.concluida,c.total)+'% do total',
+      `<b>${c.executada}</b> no prazo · <b>${c.exec_atraso}</b> com atraso`,'concluida');
 }
 
 function comissoes(){
@@ -1272,18 +1283,22 @@ function abrir(tipo, dep=''){
   gaveta(nomes[tipo], base, sit, dep);
 }
 function gaveta(titulo, base, sit, dep){
-  dw = {titulo, base, sit, dep, q:''};
+  dw = {titulo, base, sit, dep, q:'', orig:''};
   document.getElementById('busca').value='';
   document.getElementById('drT').textContent = titulo;
   document.getElementById('drS').textContent = (!ORIGENS[aba] ? 'Todas as origens' : ORIGENS[aba].nome) + (temFiltro() ? ' · '+rotuloFiltro() : '');
   const deps = [...new Set(base.map(a=>a.dep))].sort();
   document.getElementById('fDep').innerHTML = `<option value="">Todos os departamentos</option>` + deps.map(d=>`<option ${d===dep?'selected':''}>${esc(d)}</option>`).join('');
+  const origs = ABAS_ORIGEM.filter(k => base.some(a=>a.o===k));
+  const fo = document.getElementById('fOrig');
+  fo.innerHTML = `<option value="">Todas as origens (${base.length})</option>` + origs.map(k=>`<option value="${k}">${ORIGENS[k].nome} (${base.filter(a=>a.o===k).length})</option>`).join('');
+  fo.style.display = origs.length>1 ? '' : 'none';
   lista();
   document.getElementById('dr').classList.add('on'); document.getElementById('ov').classList.add('on');
 }
 function fechar(){ document.getElementById('dr').classList.remove('on'); document.getElementById('ov').classList.remove('on'); }
 function lista(){
-  const porDep = dw.base.filter(a=>!dw.dep||a.dep===dw.dep);
+  const porDep = dw.base.filter(a=>(!dw.dep||a.dep===dw.dep) && (!dw.orig||a.o===dw.orig));
   const n = {todas:porDep.length, abertas:porDep.filter(a=>a.grupo!=='concluida').length, concluidas:porDep.filter(a=>a.grupo==='concluida').length};
   document.getElementById('seg').innerHTML = Object.entries(SIT).map(([k,l])=>`<button class="${dw.sit===k?'on':''}" data-s="${k}">${l}<span class="k">${n[k]}</span></button>`).join('');
   document.querySelectorAll('#seg button').forEach(b=>b.onclick=()=>{ dw.sit=b.dataset.s; lista(); });
@@ -1378,6 +1393,7 @@ function expandir(el){
   setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'nearest'}),60);
 }
 document.getElementById('fDep').onchange = e => { dw.dep = e.target.value; lista(); };
+document.getElementById('fOrig').onchange = e => { dw.orig = e.target.value; lista(); };
 document.getElementById('busca').oninput = e => { dw.q = e.target.value; lista(); };
 document.getElementById('drX').onclick = fechar;
 document.getElementById('ov').onclick = fechar;
