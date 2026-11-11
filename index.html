@@ -411,6 +411,43 @@ mark{background:#FDE68A;color:inherit;border-radius:3px;padding:0 1px}
 @media(max-width:1520px){.sbtn kbd{display:none}}
 @media(max-width:1380px){.sbtn span{display:none}.brand p{display:none}}
 @media(max-width:1180px){.top-in{flex-wrap:wrap}}
+
+/* ===== aba lista completa ===== */
+.pl-btns{display:flex;gap:10px}
+.pl-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px 16px;margin-bottom:12px}
+.pl-tools .search{min-width:260px}
+.pl-tools .fsel{max-width:210px}
+.pl-info{font-size:13px;color:var(--sub);margin:0 4px 10px}
+.pl-info b{color:var(--txt)}
+.pl-wrap{padding:0;max-height:calc(100vh - 200px);overflow:auto}
+.pl-wrap::before{display:none}
+table.pl{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px}
+.pl thead th{position:sticky;top:0;z-index:3;background:rgba(240,248,243,.97);backdrop-filter:blur(8px);text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);padding:12px 10px;border-bottom:1px solid rgba(18,38,27,.1);cursor:pointer;white-space:nowrap;user-select:none}
+.pl thead th:hover{color:var(--brand)}
+.pl thead th.asc::after{content:" ▲";color:var(--brand)}
+.pl thead th.desc::after{content:" ▼";color:var(--brand)}
+.pl td{padding:10px;border-bottom:1px solid rgba(18,38,27,.06);vertical-align:top}
+.pl tbody tr{cursor:pointer;transition:background .12s}
+.pl tbody tr:nth-child(even) td{background:rgba(255,255,255,.35)}
+.pl tbody tr:hover td{background:#fff}
+.pl tbody tr.r-atr td:first-child{box-shadow:inset 3px 0 0 var(--atr)}
+.pl .c-n{font-weight:700;color:var(--brand);white-space:nowrap}
+.pl td.num{white-space:nowrap}
+.pl .c-desc{min-width:260px;max-width:420px;font-weight:600}
+.pl .c-obs{max-width:240px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl .tag{white-space:nowrap}
+.pl .sd{color:#6D5BD8;font-weight:600}
+
+.brand h1{white-space:nowrap}
+@media(max-width:1560px){.nav button{padding:8px 10px;font-size:12.5px}.top-in{gap:14px}}
+@media(max-width:1440px){.brand p{display:none}.sbtn span{display:none}}
+.pl .c-desc{max-width:330px;min-width:220px}
+.pl .c-obs{max-width:200px}
+.pl td,.pl th{padding-left:8px;padding-right:8px}
+table.pl{min-width:1250px}
+
+main.wide{max-width:1880px}
+.sbtn kbd{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -474,8 +511,8 @@ const ORIGENS = {
   CAMPANHA:{nome:'Campanhas', longo:'Ações originadas em campanhas'},
   ACIDENTE:{nome:'Acidentes', longo:'Ações de investigação de acidentes'}
 };
-const ABAS = [['geral','Visão geral'],['CIPA','CIPA'],['AUD','Auditoria Comportamental'],['COMITE','Comitê de Segurança'],['CAMPANHA','Campanhas'],['ACIDENTE','Acidentes']];
-const ABAS_ORIGEM = ABAS.slice(1).map(x=>x[0]);
+const ABAS = [['geral','Visão geral'],['CIPA','CIPA'],['AUD','Auditoria Comportamental'],['COMITE','Comitê de Segurança'],['CAMPANHA','Campanhas'],['ACIDENTE','Acidentes'],['planilha','☰ Lista completa']];
+const ABAS_ORIGEM = ABAS.map(x=>x[0]).filter(k=>ORIGENS[k]);
 const COR = {concluida:'#2BB673', andamento:'#4C8DF0', atraso:'#E85D5D', semdata:'#9B87F5'};
 const STX = {executada:['Concluída','p-ok'], exec_atraso:['Concluída c/ atraso','p-ok'], andamento:['Em andamento','p-and'], atrasada:['Atrasada','p-atr'], sem_data:['Sem data definida','p-sd']};
 const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -524,7 +561,7 @@ function intervalo(){
 }
 let dw = {titulo:'', base:[], sit:'todas', dep:'', q:''};
 
-function escopoAba(){ return aba==='geral' ? ACOES : ACOES.filter(a=>a.o===aba); }
+function escopoAba(){ return (aba==='geral'||aba==='planilha') ? ACOES : ACOES.filter(a=>a.o===aba); }
 function escopo(){ return filtrar(escopoAba()); }
 
 /* ---------- navegação ---------- */
@@ -851,10 +888,99 @@ document.addEventListener('keydown', e => {
   if(e.key==='Escape'){ fecharPQ(); if(LB) LB.classList.remove('on'); }
 });
 
+/* ---------- aba Lista completa (formato planilha) ---------- */
+let TB = {q:'', o:'', st:'', dep:'', local:'', k:'n', asc:true};
+const COLS = [
+  ['n','Nº'],['o','Origem'],['do','Data origem'],['desc','Ação / atividade'],['local','Local'],['dep','Responsável'],
+  ['prev','Data prevista'],['term','Real data término'],['s','Status'],['obs','Observações']];
+const ST_FILTRO = {'':'Todos os status', abertas:'Abertas (pendentes)', concluidas:'Concluídas', andamento:'Em andamento', atraso:'Em atraso', semdata:'Sem data definida'};
+const numN = n => { const s=String(n); return s[0]==='H' ? 100000+parseInt(s.slice(1)) : +s; };
+function linhasPlanilha(){
+  const q = norm(TB.q).trim(), termos = q ? q.split(/\s+/) : [];
+  let L = escopo().filter(a =>
+    (!TB.o || a.o===TB.o) && (!TB.dep || a.dep===TB.dep) && (!TB.local || a.local===TB.local) &&
+    (!TB.st || (TB.st==='abertas' ? a.grupo!=='concluida' : TB.st==='concluidas' ? a.grupo==='concluida' : a.grupo===TB.st)) &&
+    (!termos.length || termos.every(tm => norm(a.n+' '+a.desc+' '+a.local+' '+a.dep+' '+a.obs+' '+ORIGENS[a.o].nome).includes(tm))));
+  const k = TB.k, dir = TB.asc ? 1 : -1;
+  const val = a => k==='n' ? numN(a.n) : k==='o' ? ORIGENS[a.o].nome : k==='s' ? ordemSt(a) : (a[k] ?? '');
+  return L.sort((x,y) => { const a=val(x), b=val(y); if(a===''&&b!=='') return 1; if(b===''&&a!=='') return -1; return (a>b?1:a<b?-1:0)*dir || numN(x.n)-numN(y.n); });
+}
+function renderPlanilha(){
+  const base = escopo();
+  const opts = (arr, sel) => arr.map(v=>`<option ${v===sel?'selected':''}>${esc(v)}</option>`).join('');
+  const deps = [...new Set(base.map(a=>a.dep))].sort(), locs = [...new Set(base.map(a=>a.local).filter(Boolean))].sort();
+  document.getElementById('main').innerHTML = `
+    <div class="head"><div><h2>Lista completa de ações</h2><p>Todas as ações no formato da planilha · clique numa linha para ver os detalhes</p></div>
+      <div class="pl-btns"><button class="btn" id="plCopy" type="button">Copiar tabela</button><button class="btn pri" id="plCsv" type="button">Baixar para Excel ↓</button></div></div>
+    ${barraFiltro()}
+    <div class="pl-tools tile">
+      <input class="search" id="plQ" type="search" placeholder="Filtrar por nº, ação, local, responsável, observação…" value="${esc(TB.q)}">
+      <select class="fsel" id="plO"><option value="">Todas as origens</option>${ABAS_ORIGEM.map(k=>`<option value="${k}" ${TB.o===k?'selected':''}>${ORIGENS[k].nome}</option>`).join('')}</select>
+      <select class="fsel" id="plS">${Object.entries(ST_FILTRO).map(([k,l])=>`<option value="${k}" ${TB.st===k?'selected':''}>${l}</option>`).join('')}</select>
+      <select class="fsel" id="plD"><option value="">Todos os responsáveis</option>${opts(deps,TB.dep)}</select>
+      <select class="fsel" id="plL"><option value="">Todos os locais</option>${opts(locs,TB.local)}</select>
+      <button class="flimpa" id="plX" type="button" ${TB.q||TB.o||TB.st||TB.dep||TB.local?'':'hidden'}>✕ Limpar</button>
+    </div>
+    <div class="pl-info"><b id="plN"></b><span id="plMsg"></span></div>
+    <div class="pl-wrap tile"><table class="pl"><thead><tr>${COLS.map(([k,l])=>`<th data-k="${k}" class="${TB.k===k?(TB.asc?'asc':'desc'):''}">${l}</th>`).join('')}</tr></thead><tbody id="plB"></tbody></table></div>`;
+  corpoPlanilha();
+  const on = (id, ev, fn) => document.getElementById(id)[ev] = fn;
+  on('plQ','oninput', e => { TB.q = e.target.value; corpoPlanilha(); document.getElementById('plX').hidden = !(TB.q||TB.o||TB.st||TB.dep||TB.local); });
+  [['plO','o'],['plS','st'],['plD','dep'],['plL','local']].forEach(([id,k]) => on(id,'onchange', e => { TB[k] = e.target.value; renderPlanilha(); }));
+  on('plX','onclick', () => { TB = {...TB, q:'', o:'', st:'', dep:'', local:''}; renderPlanilha(); });
+  document.querySelectorAll('.pl th').forEach(th => th.onclick = () => { const k=th.dataset.k; TB.asc = TB.k===k ? !TB.asc : true; TB.k = k; renderPlanilha(); });
+  on('plCsv','onclick', baixarCSV);
+  on('plCopy','onclick', copiarTabela);
+  document.querySelectorAll('[data-ano]').forEach(b => b.onclick = () => { filtro.ano = b.dataset.ano; filtro.de=''; filtro.ate=''; render(); });
+  document.getElementById('fBase').onchange = e => { filtro.base = e.target.value; render(); };
+  document.getElementById('fDe').onchange = e => { filtro.de = e.target.value; filtro.ano=''; render(); };
+  document.getElementById('fAte').onchange = e => { filtro.ate = e.target.value; filtro.ano=''; render(); };
+  const lp = document.getElementById('fLimpa'); if(lp) lp.onclick = () => { filtro = {...filtro, ano:'', de:'', ate:''}; render(); };
+}
+function corpoPlanilha(){
+  const L = linhasPlanilha(); TB.vis = L;
+  document.getElementById('plN').textContent = `${L.length} ${L.length===1?'ação':'ações'}`;
+  document.getElementById('plB').innerHTML = L.length ? L.map((a,i) => { const [st,cl] = STX[a.s];
+    return `<tr data-i="${i}" class="${a.s==='atrasada'?'r-atr':''}">
+      <td class="num c-n">${esc(a.n)}</td><td><span class="tag">${ORIGENS[a.o].nome}</span></td><td class="num">${fmt(a.do)}</td>
+      <td class="c-desc">${(a.fotos||[]).length?'<span class="tag foto">📷</span>':''}${a.hist?'<span class="tag hist">Hist.</span>':''}${esc(a.desc)}</td>
+      <td>${esc(a.local)||'—'}</td><td>${esc(a.dep)}</td>
+      <td class="num" style="${a.s==='atrasada'?'color:var(--atr);font-weight:700':''}">${a.prev?fmt(a.prev):'<span class="sd">a definir</span>'}</td>
+      <td class="num">${fmt(a.term)}</td>
+      <td><span class="pill ${cl}">${st}${a.s==='atrasada'?' · '+a.diasAtraso+'d':''}</span></td>
+      <td class="c-obs" title="${esc(a.obs)}">${esc(a.obs)}</td></tr>`; }).join('')
+    : `<tr><td colspan="${COLS.length}" class="empty">Nenhuma ação com esses filtros.</td></tr>`;
+  document.querySelectorAll('#plB tr[data-i]').forEach(tr => tr.onclick = () => {
+    const a = TB.vis[+tr.dataset.i]; gaveta('Ação nº '+a.n, [a], 'todas', ''); expandir(document.querySelector('#lista .ac'));
+  });
+}
+function tabelaTexto(sep){
+  const cab = ['Nº','Origem','Data origem','Ação / atividade','Local','Responsável','Data prevista','Real data término','Status','Dias em atraso','Observações'];
+  const cel = v => { v = String(v??''); return sep===';' && /[;"\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v.replace(/[\t\n]/g,' '); };
+  const linhas = TB.vis.map(a => [a.n, ORIGENS[a.o].nome, fmt(a.do), a.desc, a.local, a.dep, a.prev?fmt(a.prev):'A DEFINIR', a.term?fmt(a.term):'', STX[a.s][0], a.diasAtraso??'', a.obs].map(cel).join(sep));
+  return [cab.join(sep), ...linhas].join('\r\n');
+}
+function msgPl(t){ const m=document.getElementById('plMsg'); m.textContent=t; setTimeout(()=>m.textContent='',4000); }
+function baixarCSV(){
+  try{
+    const blob = new Blob(['﻿'+tabelaTexto(';')], {type:'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = `acoes_sesmt_${HOJE.toISOString().slice(0,10)}.csv`; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+    msgPl(` · arquivo baixado (${TB.vis.length} linhas) — abre direto no Excel`);
+  }catch(e){ msgPl(' · não foi possível baixar aqui; use "Copiar tabela" e cole no Excel'); }
+}
+async function copiarTabela(){
+  try{ await navigator.clipboard.writeText(tabelaTexto('\t')); msgPl(` · ${TB.vis.length} linhas copiadas — cole no Excel com Ctrl+V`); }
+  catch(e){ msgPl(' · não foi possível copiar neste navegador'); }
+}
+
 /* ---------- página ---------- */
 function render(){
   renderNav();
   renderTicker();
+  document.getElementById('main').classList.toggle('wide', aba==='planilha');
+  if(aba==='planilha'){ renderPlanilha(); return; }
   const L = escopo(), c = cont(L);
   const geral = aba==='geral';
   const titulo = geral ? 'Visão geral do plano' : ORIGENS[aba].nome;
@@ -1034,8 +1160,8 @@ relogio(); setInterval(relogio, 15000);
 setTimeout(() => location.reload(), 30*60*1000);
 if(PACOTE.gerado_em) document.getElementById('atual').textContent = new Date(PACOTE.gerado_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 const h = (location.hash||'').slice(1).toUpperCase();
-if(ABAS_ORIGEM.includes(h)) aba = h;
-window.addEventListener('hashchange', () => { const k=(location.hash||'').slice(1).toUpperCase(); const n=ABAS_ORIGEM.includes(k)?k:'geral'; if(n!==aba){aba=n;render();} });
+if(ABAS_ORIGEM.includes(h)) aba = h; else if(h==='PLANILHA') aba = 'planilha';
+window.addEventListener('hashchange', () => { const k=(location.hash||'').slice(1).toUpperCase(); const n=ABAS_ORIGEM.includes(k)?k:(k==='PLANILHA'?'planilha':'geral'); if(n!==aba){aba=n;render();} });
 render();
 </script>
 </body>
