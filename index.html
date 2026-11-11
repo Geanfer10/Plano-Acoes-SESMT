@@ -508,6 +508,18 @@ table.stxt{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px
 .ms-c{font-size:11.5px;color:var(--sub)}
 .ms-ok{border:0;background:linear-gradient(135deg,#1E9350,#0E8A7E);color:#fff;font-weight:700;font-size:12.5px;padding:7px 16px;border-radius:9px;cursor:pointer;font-family:inherit}
 .fbar{position:relative;z-index:6}
+
+/* ===== tabela origem x status ===== */
+.stxt.so th i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:0}
+.stxt.so th{white-space:normal;line-height:1.3;vertical-align:bottom}
+.stxt.so td.so-o{font-weight:700}
+.so-tab{border:0;background:none;font:inherit;font-weight:700;color:var(--txt);cursor:pointer;padding:4px 8px;margin:-4px -8px;border-radius:8px;transition:background .15s,color .15s}
+.so-tab span{color:var(--mute);margin-left:4px;transition:transform .2s;display:inline-block}
+.so-tab:hover{background:#fff;color:var(--brand);box-shadow:0 6px 16px -8px rgba(31,80,55,.4)}
+.so-tab:hover span{transform:translateX(3px);color:var(--brand)}
+.stxt.so td.so-bar{min-width:180px;width:22%}
+.stxt.so td.so-bar .mini{height:10px}
+.stxt.so td.so-p{font-size:15px;color:var(--brand)}
 </style>
 </head>
 <body>
@@ -595,7 +607,7 @@ const cont = L => {
 };
 
 let aba = 'geral', periodo = 90;
-let filtro = {ano:'', mes:[], local:[], dep:[], hist:false, base:'do'};
+let filtro = {ano:'', mes:[], local:[], dep:[], hist:true, base:'do'};
 const BASES = {do:'Data de origem', prev:'Data prevista', term:'Data de término'};
 const MESES_N = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const temFiltro = () => !!(filtro.ano || filtro.mes.length || filtro.local.length || filtro.dep.length);
@@ -773,7 +785,6 @@ function barraFiltro(){
     <div class="fgrp"><span class="flb">Mês</span>${msel('mes','Todos os meses',MESES_N.map((m,i)=>{ const v=String(i+1).padStart(2,'0'); return {v, l:m, dis:!mesesCom.has(v)}; }),filtro.mes,false)}</div>
     <div class="fgrp"><span class="flb">Local</span>${msel('local','Todos os locais',locs.map(l=>({v:l,l})),filtro.local,true)}</div>
     <div class="fgrp"><span class="flb">Responsável</span>${msel('dep','Todos os responsáveis',deps.map(d=>({v:d,l:d})),filtro.dep,true)}</div>
-    ${nHist ? `<label class="fhist" title="Ações antigas da aba CONCLUÍDOS da planilha"><input type="checkbox" id="fHist" ${filtro.hist?'checked':''}><span>Incluir histórico <b>(${nHist})</b></span></label>` : ''}
     ${temFiltro() ? `<button class="flimpa" id="fLimpa">✕ Limpar filtro</button>` : ''}
     ${temFiltro() ? `<div class="finfo">Filtrando: <b>${esc(rotuloFiltro())}</b>${temFiltroData()?' · pela data de origem':''}${semData?` · ${semData} ${semData===1?'ação':'ações'} sem data de origem ${semData===1?'fica':'ficam'} de fora`:''}</div>` : ''}
   </div>`;
@@ -1118,6 +1129,32 @@ function statusExcel(L){
   </div>`;
 }
 
+/* ---------- status x origem (junção de "Por origem" + "Ações por status") ---------- */
+function statusOrigem(L){
+  const geral = !ORIGENS[aba];
+  const linhas = geral ? ABAS_ORIGEM.filter(k => L.some(a=>a.o===k)) : [aba];
+  const ordem = ['executada','exec_atraso','andamento','atrasada','sem_data'];
+  const NOMES = {executada:'Executada', exec_atraso:'Exec+Atraso', andamento:'Andamento', atrasada:'Atrasada', sem_data:'Atraso -ausência de data'};
+  ULT_ST = {};
+  const reg = (k, it) => { ULT_ST[k] = it; return k; };
+  const cel = (s, o, cls='') => { const it = L.filter(a => (!s || a.s===s) && (!o || a.o===o)); const v = it.length;
+    return v ? `<td class="num stc ${cls}" data-st="${reg((s||'')+'|'+(o||''), it)}">${v}</td>` : `<td class="num zero ${cls}">–</td>`; };
+  const barra = it => { const n = it.length || 1; return `<div class="mini">${['concluida','andamento','atraso','semdata'].map(g=>`<span style="width:${it.filter(a=>a.grupo===g).length*100/n}%;background:${COR[g]}"></span>`).join('')}</div>`; };
+  const linha = o => { const it = L.filter(a=>a.o===o); const conc = it.filter(a=>a.grupo==='concluida').length;
+    return `<tr><td class="so-o">${geral?`<button type="button" class="so-tab" data-tab="${o}">${ORIGENS[o].nome} <span>›</span></button>`:ORIGENS[o].nome}</td>
+      ${cel('',o,'tot')}${ordem.map(s=>cel(s,o)).join('')}
+      <td class="so-bar">${barra(it)}</td><td class="num so-p">${pct(conc,it.length)}%</td></tr>`; };
+  const conc = L.filter(a=>a.grupo==='concluida').length;
+  return `<div class="tile c12 stx"><h3>Ações por origem e status <small>mesmos status da planilha · clique num número para ver as ações${geral?' · clique na origem para abrir a aba':''}</small></h3>
+    <div class="stx-wrap"><table class="stxt so">
+      <thead><tr><th>Origem</th><th class="num">Total</th>${ordem.map(s=>`<th class="num"><i style="background:${COR_ST[s]}"></i>${NOMES[s]}</th>`).join('')}<th>Situação</th><th class="num">% concluído</th></tr></thead>
+      <tbody>${linhas.map(linha).join('')}</tbody>
+      ${geral?`<tfoot><tr><td>Total geral</td>${cel('','','tot')}${ordem.map(s=>cel(s,'')).join('')}<td class="so-bar">${barra(L)}</td><td class="num so-p">${pct(conc,L.length)}%</td></tr></tfoot>`:''}
+    </table></div>
+    <div class="leg" style="color:var(--sub);margin-top:10px"><span><i style="background:${COR.concluida}"></i>Concluídas</span><span><i style="background:${COR.andamento}"></i>Em andamento</span><span><i style="background:${COR.atraso}"></i>Em atraso</span><span><i style="background:${COR.semdata}"></i>Sem data</span></div>
+  </div>`;
+}
+
 /* ---------- página ---------- */
 function render(){
   renderNav();
@@ -1133,17 +1170,15 @@ function render(){
       <button class="btn pri" data-open="todas">Ver lista de ações →</button></div>
     ${barraFiltro()}
     <section class="bento">
-      ${hero(L,c)}
-      ${geral ? comissoes() : movimentacao(escopoAba().filter(passaLD))}
       <div class="kpirow c12">${kpis(c)}</div>
-      ${statusExcel(L)}
-      ${geral ? movimentacao(escopoAba().filter(passaLD)) : ''}
+      ${hero(L,c)}
+      ${movimentacao(escopoAba().filter(passaLD))}
+      ${statusOrigem(L)}
       ${departamentos(L, geral ? 'c6' : 'c7')}
-      ${geral ? '' : atencao(L,'c5')}
-      ${idadeTile(L,'c6')}
-      ${tempoTile(L,'c6')}
+      ${geral ? idadeTile(L,'c6') : atencao(L,'c5')}
+      ${geral ? tempoTile(L,'c6') : idadeTile(L,'c6')}
+      ${geral ? atencao(L,'c6') : tempoTile(L,'c6')}
       ${locaisTile(L,'c12')}
-      ${geral ? atencao(L,'c12') : ''}
     </section>
     <div class="foot">Critérios iguais aos da planilha (coluna STATUS), recalculados com a data de hoje:
       <b>Concluída</b> = tem data de término (no prazo ou com atraso) ·
