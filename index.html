@@ -570,6 +570,16 @@ table.stxt{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px
 .dr-h{padding:20px 26px 14px}
 .tools .fsel{max-width:240px}
 @media(max-width:700px){.dr{width:100vw !important;height:100vh;border-radius:0}}
+
+/* 4 KPIs (sem Pendentes) ocupando o espaço */
+.kpirow.c9{grid-template-columns:repeat(4,1fr);gap:14px}
+.kpirow.c9 .kpi{padding:20px 20px 18px}
+.kpirow.c9 .kpi .v{font-size:38px}
+.kpirow.c9 .kpi .lb{font-size:13.5px}
+.kpirow.c9 .kpi .p{font-size:13px}
+.kpirow.c9 .kpi .d{font-size:12.5px}
+.kpirow.c9 .kpi .ico{width:36px;height:36px}
+@media(max-width:900px){.kpirow.c9{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -751,8 +761,6 @@ function kpi(id,nome,v,cor,p,det,icone){
 function kpis(c){
   return kpi('atraso','Em atraso',c.atraso,'var(--atr)',pct(c.atraso,c.total)+'% do total',
       `data prevista já vencida`,'atraso')
-   + kpi('pendente','Pendentes',c.pendente,'#E08A1E',pct(c.pendente,c.total)+'% do total',
-      `<b>${c.andamento}</b> andamento · <b>${c.atraso}</b> atraso · <b>${c.semdata}</b> sem data`,'pendente')
    + kpi('semdata','Sem data definida',c.semdata,'#7C6BE8',pct(c.semdata,c.total)+'% do total',
       `aguardando definição de prazo`,'semdata')
    + kpi('andamento','Em andamento',c.andamento,'var(--and)',pct(c.andamento,c.total)+'% do total',
