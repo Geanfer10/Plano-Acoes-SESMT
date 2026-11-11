@@ -580,6 +580,41 @@ table.stxt{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px
 .kpirow.c9 .kpi .d{font-size:12.5px}
 .kpirow.c9 .kpi .ico{width:36px;height:36px}
 @media(max-width:900px){.kpirow.c9{grid-template-columns:repeat(2,1fr)}}
+
+/* ===== gráfico de status dentro da janela ===== */
+.drg{background:rgba(255,255,255,.7);border:1px solid #fff;border-radius:16px;padding:14px 16px 10px;margin-bottom:14px;box-shadow:0 6px 18px -10px rgba(31,80,55,.25)}
+.drg-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px;font-size:12.5px}
+.drg-h span{color:var(--sub);font-size:11.5px}
+.drg-h a{color:var(--brand);font-weight:700}
+.drg-bars{display:flex;gap:10px;align-items:stretch}
+.drg-b{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:none;cursor:pointer;padding:6px 4px;border-radius:12px;font-family:inherit;transition:background .15s,transform .2s,opacity .2s}
+.drg-b:hover{background:#fff;transform:translateY(-2px);box-shadow:0 8px 18px -10px rgba(31,80,55,.35)}
+.drg-b.on{background:#fff;box-shadow:0 0 0 2px rgba(30,147,80,.35)}
+.drg-b.off{opacity:.35}
+.drg-n{font-size:18px;font-weight:700;color:var(--txt)}
+.drg-col{width:44px;height:70px;display:flex;align-items:flex-end;background:rgba(18,38,27,.05);border-radius:8px;overflow:hidden}
+.drg-col i{width:100%;border-radius:8px}
+.drg-l{font-size:11.5px;font-weight:600;color:var(--txt);text-align:center;line-height:1.2}
+.drg-p{font-size:11px;color:var(--mute);font-family:var(--mono)}
+
+.drg{padding:12px 14px 10px}
+.drg-h{margin-bottom:8px}
+.drg-stack{display:flex;height:22px;border-radius:8px;overflow:hidden;gap:2px;background:rgba(18,38,27,.05)}
+.drg-seg{border:0;padding:0;min-width:6px;color:#fff;font-family:var(--mono);font-size:11.5px;font-weight:700;cursor:pointer;transition:filter .15s,opacity .2s}
+.drg-seg:hover{filter:brightness(1.1)}
+.drg-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.drg-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(18,38,27,.08);background:rgba(255,255,255,.8);padding:5px 10px;border-radius:20px;font-size:12px;font-weight:600;color:var(--txt);cursor:pointer;font-family:inherit;transition:transform .15s,box-shadow .15s,opacity .2s}
+.drg-chip i{width:9px;height:9px;border-radius:50%}
+.drg-chip b{font-size:13px}
+.drg-chip em{font-style:normal;color:var(--mute);font-size:11px;font-family:var(--mono)}
+.drg-chip:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(31,80,55,.4)}
+.drg-chip.on{border-color:var(--brand2);box-shadow:0 0 0 2px rgba(30,147,80,.2);background:#fff}
+.drg-b.off{opacity:.35}
+
+.drg-b.drg-seg{flex-direction:row;align-items:center;justify-content:center;border-radius:0;padding:0;gap:0;box-shadow:none;transform:none;background-clip:padding-box}
+.drg-b.drg-seg:hover{transform:none;box-shadow:none}
+.drg-stack .drg-seg:first-child{border-radius:8px 0 0 8px}.drg-stack .drg-seg:last-child{border-radius:0 8px 8px 0}.drg-stack .drg-seg:only-child{border-radius:8px}
+.drg-b.drg-chip{flex:none;flex-direction:row;align-items:center;padding:5px 11px;border-radius:20px;gap:7px}
 </style>
 </head>
 <body>
@@ -609,7 +644,7 @@ table.stxt{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px
       <input class="search" id="busca" type="search" placeholder="Buscar ação, local, observação…">
     </div>
   </div>
-  <div class="dr-b"><div class="cnt" id="cnt"></div><div id="lista"></div></div>
+  <div class="dr-b"><div id="drG"></div><div class="cnt" id="cnt"></div><div id="lista"></div></div>
 </aside>
 
 <script type="module">
@@ -1291,7 +1326,7 @@ function abrir(tipo, dep=''){
   gaveta(nomes[tipo], base, sit, dep);
 }
 function gaveta(titulo, base, sit, dep){
-  dw = {titulo, base, sit, dep, q:'', orig:''};
+  dw = {titulo, base, sit, dep, q:'', orig:'', st:''};
   document.getElementById('busca').value='';
   document.getElementById('drT').textContent = titulo;
   document.getElementById('drS').textContent = (!ORIGENS[aba] ? 'Todas as origens' : ORIGENS[aba].nome) + (temFiltro() ? ' · '+rotuloFiltro() : '');
@@ -1305,6 +1340,20 @@ function gaveta(titulo, base, sit, dep){
   document.getElementById('dr').classList.add('on'); document.getElementById('ov').classList.add('on');
 }
 function fechar(){ document.getElementById('dr').classList.remove('on'); document.getElementById('ov').classList.remove('on'); }
+function graficoGaveta(L){
+  const el = document.getElementById('drG');
+  const ordemSt = [['atrasada','Atrasada'],['sem_data','Sem data definida'],['andamento','Em andamento'],['exec_atraso','Concluída c/ atraso'],['executada','Concluída']];
+  const tot = L.length;
+  const it = ordemSt.map(([s,l]) => ({s, l, v: L.filter(a=>a.s===s).length})).filter(x => x.v);
+  if(!tot || (it.length===1 && !dw.st)){ el.innerHTML=''; return; }
+  el.innerHTML = `<div class="drg">
+    <div class="drg-h"><b>Ações por status · ${tot}</b><span>${dw.st ? 'filtrando: <b>'+ordemSt.find(x=>x[0]===dw.st)[1]+'</b> · <a href="#" id="drgX">mostrar todas</a>' : 'clique num status para filtrar a lista'}</span></div>
+    <div class="drg-stack">${it.map(x => `<button type="button" class="drg-b drg-seg ${dw.st&&dw.st!==x.s?'off':''}" data-st="${x.s}" title="${x.l}: ${x.v} (${pct(x.v,tot)}%)" style="flex:${x.v};background:${COR_ST[x.s]}">${x.v*100/tot>=8?x.v:''}</button>`).join('')}</div>
+    <div class="drg-chips">${it.map(x => `<button type="button" class="drg-b drg-chip ${dw.st===x.s?'on':''} ${dw.st&&dw.st!==x.s?'off':''}" data-st="${x.s}">
+      <i style="background:${COR_ST[x.s]}"></i>${x.l}<b class="num">${x.v}</b><em>${pct(x.v,tot)}%</em></button>`).join('')}</div></div>`;
+  el.querySelectorAll('.drg-b').forEach(b => b.onclick = () => { dw.st = dw.st===b.dataset.st ? '' : b.dataset.st; lista(); });
+  const x = el.querySelector('#drgX'); if(x) x.onclick = e => { e.preventDefault(); dw.st=''; lista(); };
+}
 function lista(){
   const porDep = dw.base.filter(a=>(!dw.dep||a.dep===dw.dep) && (!dw.orig||a.o===dw.orig));
   const n = {todas:porDep.length, abertas:porDep.filter(a=>a.grupo!=='concluida').length, concluidas:porDep.filter(a=>a.grupo==='concluida').length};
@@ -1312,8 +1361,10 @@ function lista(){
   document.querySelectorAll('#seg button').forEach(b=>b.onclick=()=>{ dw.sit=b.dataset.s; lista(); });
   const q = dw.q.toLowerCase();
   const ordem = {atrasada:0, sem_data:1, andamento:2, exec_atraso:3, executada:4};
-  const L = porDep.filter(a => (dw.sit==='todas' || (dw.sit==='abertas' ? a.grupo!=='concluida' : a.grupo==='concluida'))
-      && (!q || (a.desc+' '+a.local+' '+a.obs+' '+a.dep+' '+a.n).toLowerCase().includes(q)))
+  const L0 = porDep.filter(a => (dw.sit==='todas' || (dw.sit==='abertas' ? a.grupo!=='concluida' : a.grupo==='concluida'))
+      && (!q || (a.desc+' '+a.local+' '+a.obs+' '+a.dep+' '+a.n).toLowerCase().includes(q)));
+  graficoGaveta(L0);
+  const L = L0.filter(a => !dw.st || a.s===dw.st)
     .sort((a,b)=> ordem[a.s]-ordem[b.s] || (b.diasAtraso??0)-(a.diasAtraso??0) || String(b.term||a.prev||'').localeCompare(String(a.term||b.prev||'')));
   document.getElementById('cnt').textContent = `${L.length} ${L.length===1?'ação':'ações'}` + (dw.dep?` · ${dw.dep}`:'');
   dw.vis = L;
