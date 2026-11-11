@@ -753,10 +753,10 @@ function kpis(c){
       `data prevista já vencida`,'atraso')
    + kpi('pendente','Pendentes',c.pendente,'#E08A1E',pct(c.pendente,c.total)+'% do total',
       `<b>${c.andamento}</b> andamento · <b>${c.atraso}</b> atraso · <b>${c.semdata}</b> sem data`,'pendente')
-   + kpi('andamento','Em andamento',c.andamento,'var(--and)',pct(c.andamento,c.total)+'% do total',
-      `dentro do prazo previsto`,'andamento')
    + kpi('semdata','Sem data definida',c.semdata,'#7C6BE8',pct(c.semdata,c.total)+'% do total',
       `aguardando definição de prazo`,'semdata')
+   + kpi('andamento','Em andamento',c.andamento,'var(--and)',pct(c.andamento,c.total)+'% do total',
+      `dentro do prazo previsto`,'andamento')
    + kpi('concluida','Concluídas',c.concluida,'var(--ok)',pct(c.concluida,c.total)+'% do total',
       `<b>${c.executada}</b> no prazo · <b>${c.exec_atraso}</b> com atraso`,'concluida');
 }
