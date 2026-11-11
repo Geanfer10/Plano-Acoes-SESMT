@@ -485,6 +485,29 @@ table.stxt{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px
 .stxt .barcol{width:24%;min-width:160px;position:relative}
 .stxt td.barcol span{display:inline-block;height:10px;border-radius:5px;vertical-align:middle;max-width:80%}
 .stxt td.barcol em{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--sub);margin-left:8px}
+
+/* ===== múltipla escolha ===== */
+.ms{position:relative}
+.ms-b{display:inline-flex;align-items:center;gap:8px;min-width:170px;max-width:240px;border:1px solid rgba(255,255,255,.95);background:rgba(255,255,255,.7);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:13px;color:var(--txt);cursor:pointer;text-align:left}
+.ms-b span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-b i{font-style:normal;color:var(--sub);font-size:11px}
+.ms-n{background:var(--brand2);color:#fff;font-size:11px;border-radius:10px;padding:1px 7px;font-family:var(--mono)}
+.ms.ativo .ms-b{border-color:rgba(30,147,80,.45);background:#fff;box-shadow:0 0 0 3px rgba(30,147,80,.1)}
+.ms.open .ms-b{border-color:var(--brand2)}
+.ms-p{position:absolute;top:calc(100% + 6px);left:0;z-index:60;width:290px;background:rgba(252,254,253,.97);backdrop-filter:blur(20px);border:1px solid #fff;border-radius:14px;box-shadow:0 20px 50px -12px rgba(15,40,28,.35);padding:10px;animation:abre .18s ease}
+.ms-q{width:100%;border:1px solid rgba(18,38,27,.12);border-radius:9px;padding:8px 10px;font-family:inherit;font-size:13px;margin-bottom:8px;background:#fff}
+.ms-acts{display:flex;gap:6px;margin-bottom:6px}
+.ms-acts button{border:0;background:rgba(30,147,80,.08);color:var(--brand);font-weight:600;font-size:11.5px;padding:5px 9px;border-radius:7px;cursor:pointer;font-family:inherit}
+.ms-acts button:hover{background:rgba(30,147,80,.16)}
+.ms-l{max-height:260px;overflow:auto;display:flex;flex-direction:column}
+.ms-l label{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:8px;font-size:13px;cursor:pointer}
+.ms-l label:hover{background:rgba(30,147,80,.07)}
+.ms-l label.dis{opacity:.4;cursor:default}
+.ms-l input{accent-color:var(--brand2);width:15px;height:15px;flex:none}
+.ms-f{display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(18,38,27,.08);margin-top:8px;padding-top:8px}
+.ms-c{font-size:11.5px;color:var(--sub)}
+.ms-ok{border:0;background:linear-gradient(135deg,#1E9350,#0E8A7E);color:#fff;font-weight:700;font-size:12.5px;padding:7px 16px;border-radius:9px;cursor:pointer;font-family:inherit}
+.fbar{position:relative;z-index:6}
 </style>
 </head>
 <body>
@@ -572,33 +595,38 @@ const cont = L => {
 };
 
 let aba = 'geral', periodo = 90;
-let filtro = {ano:'', mes:'', local:'', dep:'', hist:false, base:'do'};
+let filtro = {ano:'', mes:[], local:[], dep:[], hist:false, base:'do'};
 const BASES = {do:'Data de origem', prev:'Data prevista', term:'Data de término'};
 const MESES_N = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const temFiltro = () => !!(filtro.ano || filtro.mes || filtro.local || filtro.dep);
-const temFiltroData = () => !!(filtro.ano || filtro.mes);
-function passaLD(a){ return (!filtro.local || a.local===filtro.local) && (!filtro.dep || a.dep===filtro.dep); }
+const temFiltro = () => !!(filtro.ano || filtro.mes.length || filtro.local.length || filtro.dep.length);
+const temFiltroData = () => !!(filtro.ano || filtro.mes.length);
+function passaLD(a){ return (!filtro.local.length || filtro.local.includes(a.local)) && (!filtro.dep.length || filtro.dep.includes(a.dep)); }
 function passaData(a){
   if(!passaLD(a)) return false;
   if(!temFiltroData()) return true;
   const v = a.do; if(!v) return false;
   if(filtro.ano && v.slice(0,4)!==filtro.ano) return false;
-  if(filtro.mes && v.slice(5,7)!==filtro.mes) return false;
+  if(filtro.mes.length && !filtro.mes.includes(v.slice(5,7))) return false;
   return true;
 }
 const filtrar = L => L.filter(passaData);
 const baseAcoes = () => ACOES.filter(a => filtro.hist || !a.hist);
+const listaNomes = (arr, uni, plu) => arr.length===1 ? arr[0] : arr.length<=3 ? arr.join(', ') : `${arr.length} ${plu}`;
+function nomesMeses(){ return filtro.mes.slice().sort().map(m=>MESES_N[+m-1]); }
+function rotuloData(){
+  if(filtro.mes.length){ const n = nomesMeses(); const m = n.length<=3 ? n.join(', ') : n.length+' meses'; return m + (filtro.ano?' de '+filtro.ano:''); }
+  return filtro.ano ? 'ano '+filtro.ano : '';
+}
 function rotuloFiltro(){
   const p = [];
-  if(filtro.mes) p.push(MESES_N[+filtro.mes-1] + (filtro.ano?' de '+filtro.ano:' (todos os anos)'));
+  if(filtro.mes.length) p.push(rotuloData() + (filtro.ano?'':' (todos os anos)'));
   else if(filtro.ano) p.push('Ano ' + filtro.ano);
-  if(filtro.local) p.push('Local: '+filtro.local);
-  if(filtro.dep) p.push('Responsável: '+filtro.dep);
+  if(filtro.local.length) p.push('Local: '+listaNomes(filtro.local,'local','locais'));
+  if(filtro.dep.length) p.push('Responsável: '+listaNomes(filtro.dep,'responsável','responsáveis'));
   return p.join(' · ');
 }
-function rotuloData(){ return filtro.mes ? MESES_N[+filtro.mes-1]+(filtro.ano?' de '+filtro.ano:'') : filtro.ano ? 'ano '+filtro.ano : ''; }
 function intervalo(){
-  if(filtro.ano && filtro.mes){ const y=+filtro.ano, m=+filtro.mes-1; return [new Date(y,m,1), new Date(Math.min(new Date(y,m+1,0), HOJE))]; }
+  if(filtro.ano && filtro.mes.length===1){ const y=+filtro.ano, m=+filtro.mes[0]-1; return [new Date(y,m,1), new Date(Math.min(new Date(y,m+1,0), HOJE))]; }
   if(filtro.ano){ const y=+filtro.ano; return [new Date(y,0,1), new Date(Math.min(new Date(y,11,31), HOJE))]; }
   return null;
 }
@@ -626,7 +654,7 @@ function ring(p){
 
 function hero(L,c){
   const tit = aba==='geral' ? 'Total de ações do plano' : 'Total de ações · '+ORIGENS[aba].nome;
-  const tf = temFiltro() ? ' · '+rotuloFiltro() : '';
+  const tf = temFiltro() ? ' · com filtro' : '';
   return `<div class="tile dark c6 click heroT" data-open="todas">
     <div class="hero">${ring(pct(c.concluida,c.total))}
       <div><div class="lbl">${tit}${tf}</div><div class="big num">${c.total}</div>
@@ -742,25 +770,62 @@ function barraFiltro(){
   return `<div class="fbar">
     <div class="fgrp"><span class="flb">Ano</span>
       <div class="seg"><button class="${!filtro.ano?'on':''}" data-ano="">Todos</button>${anos.map(y=>`<button class="${filtro.ano===y?'on':''}" data-ano="${y}">${y}</button>`).join('')}</div></div>
-    <div class="fgrp"><span class="flb">Mês</span>
-      <select class="fsel" id="fMes"><option value="">Todos os meses</option>${MESES_N.map((m,i)=>{ const v=String(i+1).padStart(2,'0'); return `<option value="${v}" ${filtro.mes===v?'selected':''} ${mesesCom.has(v)||filtro.mes===v?'':'disabled'}>${m}</option>`; }).join('')}</select></div>
-    <div class="fgrp"><span class="flb">Local</span>
-      <select class="fsel" id="fLocal"><option value="">Todos os locais</option>${locs.map(l=>`<option ${filtro.local===l?'selected':''}>${esc(l)}</option>`).join('')}</select></div>
-    <div class="fgrp"><span class="flb">Responsável</span>
-      <select class="fsel" id="fResp"><option value="">Todos os responsáveis</option>${deps.map(d=>`<option ${filtro.dep===d?'selected':''}>${esc(d)}</option>`).join('')}</select></div>
+    <div class="fgrp"><span class="flb">Mês</span>${msel('mes','Todos os meses',MESES_N.map((m,i)=>{ const v=String(i+1).padStart(2,'0'); return {v, l:m, dis:!mesesCom.has(v)}; }),filtro.mes,false)}</div>
+    <div class="fgrp"><span class="flb">Local</span>${msel('local','Todos os locais',locs.map(l=>({v:l,l})),filtro.local,true)}</div>
+    <div class="fgrp"><span class="flb">Responsável</span>${msel('dep','Todos os responsáveis',deps.map(d=>({v:d,l:d})),filtro.dep,true)}</div>
     ${nHist ? `<label class="fhist" title="Ações antigas da aba CONCLUÍDOS da planilha"><input type="checkbox" id="fHist" ${filtro.hist?'checked':''}><span>Incluir histórico <b>(${nHist})</b></span></label>` : ''}
     ${temFiltro() ? `<button class="flimpa" id="fLimpa">✕ Limpar filtro</button>` : ''}
     ${temFiltro() ? `<div class="finfo">Filtrando: <b>${esc(rotuloFiltro())}</b>${temFiltroData()?' · pela data de origem':''}${semData?` · ${semData} ${semData===1?'ação':'ações'} sem data de origem ${semData===1?'fica':'ficam'} de fora`:''}</div>` : ''}
   </div>`;
 }
+/* ---------- lista de múltipla escolha ---------- */
+function msel(key, todos, opts, sel, busca){
+  const n = sel.length;
+  const nomes = opts.filter(o=>sel.includes(o.v)).map(o=>o.l);
+  const rot = !n ? todos : n===1 ? nomes[0] : n===2 && (nomes[0]+nomes[1]).length<26 ? nomes.join(', ') : `${n} selecionados`;
+  return `<div class="ms ${n?'ativo':''}" data-ms="${key}">
+    <button type="button" class="ms-b" title="${esc(nomes.join(', '))}"><span>${esc(rot)}</span>${n?`<b class="ms-n">${n}</b>`:''}<i>▾</i></button>
+    <div class="ms-p" hidden>
+      ${busca?`<input type="search" class="ms-q" placeholder="Buscar…">`:''}
+      <div class="ms-acts"><button type="button" data-a="all">Marcar todos</button><button type="button" data-a="none">Limpar</button></div>
+      <div class="ms-l">${opts.map(o=>`<label class="${o.dis?'dis':''}" data-t="${esc(norm(o.l))}"><input type="checkbox" value="${esc(o.v)}" ${sel.includes(o.v)?'checked':''} ${o.dis&&!sel.includes(o.v)?'disabled':''}><span>${esc(o.l)}</span></label>`).join('')}</div>
+      <div class="ms-f"><span class="ms-c"></span><button type="button" class="ms-ok">Aplicar</button></div>
+    </div></div>`;
+}
+let MS_ABERTO = null;
+function aplicarMS(el){
+  const key = el.dataset.ms;
+  const vals = [...el.querySelectorAll('.ms-l input:checked')].map(i=>i.value);
+  MS_ABERTO = null;
+  const antes = JSON.stringify(filtro[key]);
+  filtro[key] = vals;
+  if(JSON.stringify(vals)!==antes) render(); else el.querySelector('.ms-p').hidden = true, el.classList.remove('open');
+}
+function ligarMS(){
+  document.querySelectorAll('.ms').forEach(el => {
+    const p = el.querySelector('.ms-p'), cont = () => { const k = el.querySelectorAll('.ms-l input:checked').length; el.querySelector('.ms-c').textContent = k ? k+' marcado'+(k>1?'s':'') : 'nenhum = todos'; };
+    el.querySelector('.ms-b').onclick = e => { e.stopPropagation();
+      if(MS_ABERTO && MS_ABERTO!==el) aplicarMS(MS_ABERTO);
+      if(!p.hidden){ aplicarMS(el); return; }
+      p.hidden = false; el.classList.add('open'); MS_ABERTO = el; cont(); const q = el.querySelector('.ms-q'); if(q) setTimeout(()=>q.focus(),20); };
+    el.querySelectorAll('.ms-l input').forEach(i => i.onchange = cont);
+    el.querySelector('[data-a="all"]').onclick = () => { el.querySelectorAll('.ms-l label').forEach(l => { if(l.style.display!=='none'){ const i=l.querySelector('input'); if(!i.disabled) i.checked = true; } }); cont(); };
+    el.querySelector('[data-a="none"]').onclick = () => { el.querySelectorAll('.ms-l input').forEach(i => i.checked = false); cont(); };
+    el.querySelector('.ms-ok').onclick = () => aplicarMS(el);
+    const q = el.querySelector('.ms-q');
+    if(q){ q.oninput = () => { const s = norm(q.value); el.querySelectorAll('.ms-l label').forEach(l => l.style.display = !s || l.dataset.t.includes(s) ? '' : 'none'); };
+      q.onkeydown = e => { if(e.key==='Enter'){ e.preventDefault(); aplicarMS(el); } }; }
+  });
+}
+document.addEventListener('mousedown', e => { if(MS_ABERTO && !MS_ABERTO.contains(e.target)) aplicarMS(MS_ABERTO); });
+document.addEventListener('keydown', e => { if(e.key==='Escape' && MS_ABERTO){ const el=MS_ABERTO; MS_ABERTO=null; el.querySelector('.ms-p').hidden=true; el.classList.remove('open'); } });
+
 function ligarFiltro(){
   document.querySelectorAll('[data-ano]').forEach(b => b.onclick = () => { filtro.ano = b.dataset.ano; render(); });
   const on = (id, fn) => { const el = document.getElementById(id); if(el) el.onchange = fn; };
-  on('fMes', e => { filtro.mes = e.target.value; render(); });
-  on('fLocal', e => { filtro.local = e.target.value; render(); });
-  on('fResp', e => { filtro.dep = e.target.value; render(); });
+  ligarMS();
   on('fHist', e => { filtro.hist = e.target.checked; render(); });
-  const lp = document.getElementById('fLimpa'); if(lp) lp.onclick = () => { filtro = {...filtro, ano:'', mes:'', local:'', dep:''}; render(); };
+  const lp = document.getElementById('fLimpa'); if(lp) lp.onclick = () => { filtro = {...filtro, ano:'', mes:[], local:[], dep:[]}; render(); };
 }
 
 const FAIXAS = [['ate90','Até 3 meses',0,90,'#F2C14E'],['90a180','3 a 6 meses',90,180,'#EE9B3B'],['180a365','6 meses a 1 ano',180,365,'#E5703A'],['mais365','Mais de 1 ano',365,1e9,'#C93C3C']];
