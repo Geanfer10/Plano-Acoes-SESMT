@@ -360,6 +360,57 @@ svg:hover .barra:not(:hover) .bar{opacity:.55}
 @media(max-width:640px){.kpirow{grid-template-columns:1fr 1fr}}
 
 .p-sd{background:rgba(124,107,232,.14);color:#6D5BD8}
+
+/* ===== botão pesquisar ===== */
+.sbtn{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.9);background:rgba(255,255,255,.6);backdrop-filter:blur(10px);padding:8px 12px;border-radius:12px;font-weight:600;font-size:13px;color:var(--txt);cursor:pointer;transition:transform .2s,box-shadow .2s}
+.sbtn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(31,80,55,.15);background:#fff}
+.sbtn kbd,.pq kbd{font-family:var(--mono);font-size:10.5px;background:rgba(18,38,27,.07);border-radius:5px;padding:2px 6px;color:var(--sub)}
+@media(max-width:900px){.sbtn span,.sbtn kbd{display:none}}
+/* ===== modal de pesquisa ===== */
+.pq{position:fixed;inset:0;z-index:70;background:rgba(15,40,28,.25);backdrop-filter:blur(6px);display:none;align-items:flex-start;justify-content:center;padding:9vh 16px 16px}
+.pq.on{display:flex;animation:abre .2s ease}
+.pq-box{width:min(760px,100%);max-height:78vh;display:flex;flex-direction:column;background:rgba(250,253,251,.92);backdrop-filter:blur(24px) saturate(170%);border:1px solid #fff;border-radius:20px;box-shadow:0 30px 80px -20px rgba(15,40,28,.45);overflow:hidden}
+.pq-in{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid rgba(18,38,27,.08);color:var(--brand)}
+.pq-in input{flex:1;border:0;background:none;font-family:inherit;font-size:17px;color:var(--txt);outline:none}
+.pq-dica{font-size:12px;color:var(--sub);padding:10px 18px;border-bottom:1px solid rgba(18,38,27,.06)}
+.pq-res{overflow:auto;padding:8px}
+.pq-vazio{padding:28px;text-align:center;color:var(--sub);font-size:13.5px}
+.pq-all{width:100%;text-align:left;border:0;background:rgba(30,147,80,.08);color:var(--brand);font-weight:700;font-size:13px;padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:6px;font-family:inherit}
+.pq-all:hover{background:rgba(30,147,80,.15)}
+.pq-it{width:100%;display:grid;grid-template-columns:54px 1fr auto;gap:12px;align-items:center;text-align:left;border:0;background:none;padding:10px 12px;border-radius:12px;cursor:pointer;font-family:inherit;color:var(--txt);transition:background .12s,transform .15s}
+.pq-it:hover,.pq-it.sel{background:#fff;box-shadow:0 6px 16px -6px rgba(31,80,55,.25);transform:scale(1.01)}
+.pq-n{font-weight:700;font-size:14px;color:var(--brand);background:rgba(30,147,80,.1);border-radius:8px;padding:6px 0;text-align:center}
+.pq-t{display:flex;flex-direction:column;gap:3px;min-width:0}
+.pq-t b{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pq-t small{font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+mark{background:#FDE68A;color:inherit;border-radius:3px;padding:0 1px}
+/* ===== fotos ===== */
+.tag.foto{background:rgba(14,116,144,.12);color:#0E7490}
+.fotos{margin-top:12px}
+.fotos>span{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--mute);font-weight:600}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:6px}
+.fth{position:relative;border:0;padding:0;border-radius:12px;overflow:hidden;cursor:zoom-in;aspect-ratio:4/3;background:#e8eee9;box-shadow:0 4px 12px -4px rgba(31,80,55,.3);transition:transform .25s cubic-bezier(.2,.9,.25,1.25),box-shadow .25s}
+.fth img{width:100%;height:100%;object-fit:cover;display:block}
+.fth i{position:absolute;right:8px;bottom:8px;font-style:normal;background:rgba(255,255,255,.85);border-radius:8px;padding:3px 6px;font-size:12px;opacity:0;transition:opacity .2s}
+.fth:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 14px 28px -10px rgba(31,80,55,.45)}
+.fth:hover i{opacity:1}
+.fvazio{margin-top:6px;border:1.5px dashed rgba(18,38,27,.15);border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--sub)}
+.fvazio b{color:var(--txt);font-family:var(--mono);font-size:12px}
+.lb{position:fixed;inset:0;z-index:80;background:rgba(5,15,10,.86);display:none;align-items:center;justify-content:center;padding:30px}
+.lb.on{display:flex;animation:abre .2s ease}
+.lb figure{max-width:min(1100px,90vw);max-height:90vh;display:flex;flex-direction:column;align-items:center;gap:10px;margin:0}
+.lb img{max-width:100%;max-height:80vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.lb figcaption{color:#E5EFE8;font-size:13px;text-align:center;max-width:800px}
+.lb button{position:absolute;border:0;background:rgba(255,255,255,.14);color:#fff;width:46px;height:46px;border-radius:50%;font-size:24px;cursor:pointer}
+.lb button:hover{background:rgba(255,255,255,.28)}
+.lb-x{top:20px;right:20px;font-size:18px !important}.lb-p{left:20px;top:50%}.lb-n{right:20px;top:50%}
+
+.top-in{gap:18px;flex-wrap:nowrap}
+.nav button{padding:8px 12px}
+.stamp{white-space:nowrap;font-size:11.5px}
+@media(max-width:1520px){.sbtn kbd{display:none}}
+@media(max-width:1380px){.sbtn span{display:none}.brand p{display:none}}
+@media(max-width:1180px){.top-in{flex-wrap:wrap}}
 </style>
 </head>
 <body>
@@ -367,10 +418,11 @@ svg:hover .barra:not(:hover) .bar{opacity:.55}
 <header class="top"><div class="top-in">
   <div class="brand">
     <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
-    <div><h1>Plano de Ações de Segurança</h1><p>SESMT · Goiás Verde · Luziânia-GO</p></div>
+    <div><h1>Plano de Ações de Segurança</h1><p>SESMT · Goiás Verde</p></div>
   </div>
   <nav class="nav" id="nav"></nav>
-  <div class="stamp">Planilha atualizada em <b id="atual">—</b><br>Situação calculada em <b id="hoje"></b></div>
+  <button class="sbtn" id="sbtn" type="button" title="Pesquisar ações (Ctrl+K)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>Pesquisar</span><kbd>Ctrl K</kbd></button>
+  <div class="stamp">Planilha atualizada em <b id="atual">—</b><br>Hoje <b id="hoje"></b></div>
 </div>
   <div class="ticker" id="ticker" hidden></div>
 </header>
@@ -713,6 +765,92 @@ function tempoTile(L, span){
   </div>`;
 }
 
+/* ---------- fotos em tela cheia ---------- */
+let LB = null;
+function lightbox(a, i){
+  if(!LB){
+    LB = document.createElement('div'); LB.className='lb'; LB.innerHTML = `<button class="lb-x" aria-label="Fechar">✕</button><button class="lb-p" aria-label="Anterior">‹</button><figure><img alt=""><figcaption></figcaption></figure><button class="lb-n" aria-label="Próxima">›</button>`;
+    document.body.appendChild(LB);
+    LB.onclick = e => { if(e.target===LB || e.target.classList.contains('lb-x')) LB.classList.remove('on'); };
+    LB.querySelector('.lb-p').onclick = () => LB._go(-1);
+    LB.querySelector('.lb-n').onclick = () => LB._go(1);
+  }
+  LB._a = a; LB._i = i;
+  LB._go = d => { LB._i = (LB._i + d + a.fotos.length) % a.fotos.length; show(); };
+  const show = () => { LB.querySelector('img').src = LB._a.fotos[LB._i]; LB.querySelector('figcaption').textContent = `Ação nº ${LB._a.n} · foto ${LB._i+1} de ${LB._a.fotos.length} · ${LB._a.desc}`;
+    LB.querySelector('.lb-p').style.display = LB.querySelector('.lb-n').style.display = LB._a.fotos.length>1 ? '' : 'none'; };
+  show(); LB.classList.add('on');
+}
+
+/* ---------- pesquisa global ---------- */
+let PQ = null;
+const norm = s => String(s??'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+function pesquisar(){
+  if(!PQ){
+    PQ = document.createElement('div'); PQ.className='pq';
+    PQ.innerHTML = `<div class="pq-box" role="dialog" aria-label="Pesquisar ações">
+      <div class="pq-in"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="pqI" type="search" placeholder="Nº da ação, responsável, setor/local ou palavra da descrição…" autocomplete="off"><kbd>Esc</kbd></div>
+      <div class="pq-dica">Dica: digite só o número para achar a ação (ex.: <b>8</b>), ou um setor como <b>expedição</b>, <b>caldeira</b>, <b>manutenção mec</b>.</div>
+      <div class="pq-res" id="pqR"></div></div>`;
+    document.body.appendChild(PQ);
+    PQ.onclick = e => { if(e.target===PQ) fecharPQ(); };
+    const inp = PQ.querySelector('#pqI');
+    inp.oninput = () => buscaPQ(inp.value);
+    inp.onkeydown = e => {
+      const it = [...PQ.querySelectorAll('.pq-it')]; let k = it.findIndex(x=>x.classList.contains('sel'));
+      if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); if(!it.length) return; it[k]?.classList.remove('sel'); k = e.key==='ArrowDown' ? Math.min(it.length-1,k+1) : Math.max(0,k-1); it[k].classList.add('sel'); it[k].scrollIntoView({block:'nearest'}); }
+      else if(e.key==='Enter'){ const s = it[k>=0?k:0]; if(s) s.click(); }
+      else if(e.key==='Escape'){ fecharPQ(); }
+    };
+  }
+  PQ.classList.add('on'); const inp = PQ.querySelector('#pqI'); inp.value=''; buscaPQ(''); setTimeout(()=>inp.focus(),30);
+}
+function fecharPQ(){ if(PQ) PQ.classList.remove('on'); }
+function buscaPQ(q){
+  const R = PQ.querySelector('#pqR'); const qn = norm(q).trim();
+  if(!qn){ R.innerHTML = '<div class="pq-vazio">Comece a digitar para pesquisar entre todas as '+ACOES.length+' ações.</div>'; return; }
+  const termos = qn.split(/\s+/);
+  const soNum = /^h?\d+$/.test(qn);
+  let L = ACOES.map(a => {
+    const num = norm(a.n), dep = norm(a.dep), loc = norm(a.local), desc = norm(a.desc), obs = norm(a.obs);
+    let sc = 0;
+    if(soNum){ if(num===qn) sc=100; else if(num.startsWith(qn)) sc=50; else return null; }
+    else {
+      for(const tm of termos){
+        let s = 0;
+        if(dep.includes(tm)) s = Math.max(s, 30); if(loc.includes(tm)) s = Math.max(s, 30);
+        if(desc.includes(tm)) s = Math.max(s, 15); if(obs.includes(tm)) s = Math.max(s, 5);
+        if(!s) return null; sc += s;
+      }
+    }
+    return {a, sc};
+  }).filter(Boolean).sort((x,y)=> y.sc-x.sc || (ordemSt(x.a)-ordemSt(y.a)));
+  const tot = L.length; L = L.slice(0,60);
+  const hl = s => { s = String(s??''); if(soNum) return esc(s);
+    const ns = norm(s); if(ns.length!==s.length) return esc(s);
+    const marca = new Array(s.length).fill(false);
+    termos.forEach(tm => { if(tm.length<2) return; let i = ns.indexOf(tm); while(i>=0){ for(let k=i;k<i+tm.length;k++) marca[k]=true; i = ns.indexOf(tm,i+tm.length); } });
+    let h='', on=false; for(let k=0;k<s.length;k++){ if(marca[k]&&!on){h+='<mark>';on=true;} if(!marca[k]&&on){h+='</mark>';on=false;} h+=esc(s[k]); } return on?h+'</mark>':h; };
+  R.innerHTML = tot ? `<button class="pq-all" type="button">Ver as ${tot} ações encontradas na lista →</button>` + L.map(({a})=>{ const [st,cl]=STX[a.s];
+      return `<button class="pq-it" type="button" data-n="${esc(a.n)}"><span class="pq-n num">${esc(a.n)}</span>
+        <span class="pq-t"><b>${hl(a.desc)}</b><small>${hl(a.dep)}${a.local?' · '+hl(a.local):''} · ${ORIGENS[a.o].nome}${(a.fotos||[]).length?' · 📷':''}</small></span>
+        <span class="pill ${cl}">${st}</span></button>`; }).join('')
+    : `<div class="pq-vazio">Nenhuma ação encontrada para "<b>${esc(q)}</b>".</div>`;
+  R.querySelectorAll('.pq-it').forEach(b => b.onclick = () => {
+    const a = ACOES.find(x=>String(x.n)===b.dataset.n); fecharPQ();
+    gaveta('Ação nº '+a.n, [a], 'todas', ''); expandir(document.querySelector('#lista .ac'));
+  });
+  const all = R.querySelector('.pq-all'); if(all) all.onclick = () => { const res = ACOES.filter(x => R._ids.has(String(x.n))); fecharPQ(); gaveta('Pesquisa: "'+q+'"', res, 'todas', ''); };
+  R._ids = new Set(ACOES.map(a=>a).filter(a => { const num=norm(a.n); if(soNum) return num.startsWith(qn); const blob=norm(a.dep+' '+a.local+' '+a.desc+' '+a.obs); return termos.every(tm=>blob.includes(tm)); }).map(a=>String(a.n)));
+}
+const ordemSt = a => ({atrasada:0, sem_data:1, andamento:2, exec_atraso:3, executada:4})[a.s];
+document.getElementById('sbtn').onclick = pesquisar;
+document.addEventListener('keydown', e => {
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); pesquisar(); }
+  if(e.key==='Escape'){ fecharPQ(); if(LB) LB.classList.remove('on'); }
+});
+
 /* ---------- página ---------- */
 function render(){
   renderNav();
@@ -805,7 +943,7 @@ function lista(){
     const extra = a.s==='atrasada' ? ` · ${a.diasAtraso} dias` : '';
     const ab = a.grupo!=='concluida' && idade(a)!==null ? `<span>Aberta há <b class="num">${idade(a)}</b> dias</span>` : '';
     return `<div class="ac" data-i="${idx}" tabindex="0" role="button" aria-expanded="false">
-      <div class="ttl">${aba==='geral'?`<span class="tag">${ORIGENS[a.o].nome}</span>`:''}${a.hist?'<span class="tag hist">Histórico</span>':''}${esc(a.desc)}</div>
+      <div class="ttl">${aba==='geral'?`<span class="tag">${ORIGENS[a.o].nome}</span>`:''}${a.hist?'<span class="tag hist">Histórico</span>':''}${(a.fotos||[]).length?`<span class="tag foto">📷 ${a.fotos.length}</span>`:''}${esc(a.desc)}</div>
       <span class="pill ${cl}">${st}${extra}</span>
       <div class="meta"><span>Nº <b class="num">${a.n}</b></span><span>Responsável <b>${esc(a.dep)}</b></span>${a.local?`<span>Local <b>${esc(a.local)}</b></span>`:''}
         <span>Origem <b class="num">${fmt(a.do)}</b></span><span>Prevista <b class="num" style="${a.s==='atrasada'?'color:var(--atr)':''}">${a.prev?fmt(a.prev):'sem data'}</b></span>${a.term?`<span>Término <b class="num">${fmt(a.term)}</b></span>`:''}${ab}</div>
@@ -825,7 +963,7 @@ function detalhe(a){
   const dO=D(a.do), dP=D(a.prev), dT=D(a.term), ref = dT || HOJE;
   const dias = (x,y) => Math.round((y-x)/DIA);
   let situ, cor;
-  if(a.s==='executada'){ situ=`Concluída ${dP&&dT?dias(dT,dP)+' dias antes do prazo':'no prazo'}`; cor='var(--ok)'; }
+  if(a.s==='executada'){ { const ad = dP&&dT ? dias(dT,dP) : null; situ = ad===null ? 'Concluída no prazo' : ad===0 ? 'Concluída exatamente no prazo' : `Concluída ${ad} ${ad===1?'dia':'dias'} antes do prazo`; } cor='var(--ok)'; }
   else if(a.s==='exec_atraso'){ situ=`Concluída com ${dias(dP,dT)} dias de atraso`; cor='var(--warn)'; }
   else if(a.s==='atrasada'){ situ=`Vencida há ${a.diasAtraso} dias`; cor='var(--atr)'; }
   else if(a.s==='andamento'){ situ=`Faltam ${dias(HOJE,dP)} dias para o prazo`; cor='var(--and)'; }
@@ -858,6 +996,9 @@ function detalhe(a){
       ${campo('Data de término', a.term?`<span class="num">${fmt(a.term)}</span>`:'—')}
       ${campo('Status', `<span class="pill ${cl}">${st}</span>`)}
     </div>
+    <div class="fotos"><span>Registro fotográfico</span>${(a.fotos||[]).length
+        ? `<div class="fgrid">${a.fotos.map((f,i)=>`<button type="button" class="fth" data-fi="${i}"><img src="${f}" alt="Foto ${i+1} da ação ${a.n}" loading="lazy"><i>🔍</i></button>`).join('')}</div>`
+        : `<div class="fvazio">Nenhuma foto registrada. Para anexar, salve a foto na pasta <b>fotos/</b> com o nº da ação no nome (ex.: <b>${a.n}.jpg</b>, <b>${a.n}-2.jpg</b>).</div>`}</div>
     <div class="obsx"><span>Observações / atualizações</span><p>${a.obs?esc(a.obs):'<i>Nenhuma observação registrada.</i>'}</p></div>
     <div class="acts"><button class="btn cop" type="button">Copiar resumo</button><span class="copok"></span></div>`;
 }
@@ -869,6 +1010,7 @@ function expandir(el){
   const x = el.querySelector('.ac-x');
   x.innerHTML = detalhe(a);
   el.classList.add('open'); el.setAttribute('aria-expanded','true');
+  x.querySelectorAll('.fth').forEach(b => b.onclick = () => lightbox(a, +b.dataset.fi));
   x.querySelector('.cop').onclick = async () => {
     const [st] = STX[a.s];
     const txt = `*Ação nº ${a.n} – ${ORIGENS[a.o].nome}*\n${a.desc}\nResponsável: ${a.dep}${a.local?'\nLocal: '+a.local:''}\nOrigem: ${fmt(a.do)} · Prevista: ${a.prev?fmt(a.prev):'sem data'}${a.term?' · Término: '+fmt(a.term):''}\nStatus: ${st}${a.s==='atrasada'?' ('+a.diasAtraso+' dias)':''}${a.obs?'\nObs.: '+a.obs:''}`;
@@ -886,7 +1028,10 @@ document.getElementById('ov').onclick = fechar;
 document.addEventListener('keydown', e => { if(e.key==='Escape') fechar(); });
 
 /* início */
-document.getElementById('hoje').textContent = HOJE.toLocaleDateString('pt-BR');
+function relogio(){ const n=new Date(); document.getElementById('hoje').textContent = n.toLocaleDateString('pt-BR')+' · '+n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+relogio(); setInterval(relogio, 15000);
+// recarrega a cada 30 min para buscar dados novos e recalcular atrasos (uso em TV)
+setTimeout(() => location.reload(), 30*60*1000);
 if(PACOTE.gerado_em) document.getElementById('atual').textContent = new Date(PACOTE.gerado_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 const h = (location.hash||'').slice(1).toUpperCase();
 if(ABAS_ORIGEM.includes(h)) aba = h;

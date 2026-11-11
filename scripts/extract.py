@@ -14,7 +14,18 @@ def linha(n,orig,do,desc,local,resp,prev,term,obs,hist):
     return dict(n=n,o=o,do=d(do),desc=txt(desc),local=txt(local),dep=DEP.get(dep,dep),
                 prev=d(prev),term=d(term),obs=txt(obs),hist=hist)
 
-def main(xlsx, saida):
+import re
+FOTO_RE = re.compile(r'^(H?\d+)(?:[-_ ].*)?\.(jpe?g|png|webp)$', re.I)
+def fotos_por_acao(pasta):
+    """fotos/274.jpg, fotos/274-2.jpg, fotos/H12.png -> {'274': ['fotos/274.jpg', ...]}"""
+    m = {}
+    if pasta and os.path.isdir(pasta):
+        for f in sorted(os.listdir(pasta)):
+            r = FOTO_RE.match(f)
+            if r: m.setdefault(r.group(1).upper(), []).append(f'fotos/{f}')
+    return m
+
+def main(xlsx, saida, pasta_fotos='fotos'):
     wb=openpyxl.load_workbook(xlsx,data_only=True)
     out=[]
     # aba principal: MASTER PLAN
@@ -30,6 +41,10 @@ def main(xlsx, saida):
             if not r[4] or txt(r[4]) in ja: continue
             a=linha(f'H{r[1]}',r[2],r[3],r[4],r[7],r[8],r[9],r[10],r[12],True)
             if a: out.append(a); nh+=1
+    fm = fotos_por_acao(pasta_fotos)
+    for a in out:
+        a['fotos'] = fm.get(str(a['n']).upper(), [])
+    print(f"{sum(1 for a in out if a['fotos'])} ações com foto")
     pacote={'gerado_em':datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
             'arquivo':os.path.basename(xlsx),'acoes':out}
     os.makedirs(os.path.dirname(saida) or '.',exist_ok=True)
@@ -41,5 +56,6 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--file',required=True,help='planilha .xlsx/.xlsm do Calendário de Ações')
     p.add_argument('--out',default='dados/acoes.json')
+    p.add_argument('--fotos',default='fotos',help='pasta com fotos nomeadas pelo nº da ação')
     a=p.parse_args()
-    main(a.file,a.out)
+    main(a.file,a.out,a.fotos)

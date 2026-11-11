@@ -6,6 +6,7 @@ on:
       - "uploads/*.xlsx"
       - "uploads/*.xlsm"
       - "scripts/extract.py"
+      - "fotos/**"
   workflow_dispatch: {}
 
 permissions:
@@ -39,7 +40,7 @@ jobs:
           if [ ${#arquivos[@]} -eq 0 ]; then echo "Nenhuma planilha em uploads/"; exit 1; fi
           ultimo=$(for f in "${arquivos[@]}"; do echo "$(git log -1 --format=%ct -- "$f") $f"; done | sort -nr | head -1 | cut -d" " -f2-)
           echo "Processando $ultimo"
-          python scripts/extract.py --file "$ultimo" --out dados/acoes.json
+          python scripts/extract.py --file "$ultimo" --out dados/acoes.json --fotos fotos
 
       - name: Commit dos dados atualizados
         run: |
