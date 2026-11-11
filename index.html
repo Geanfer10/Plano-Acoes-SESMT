@@ -448,6 +448,13 @@ table.pl{min-width:1250px}
 
 main.wide{max-width:1880px}
 .sbtn kbd{white-space:nowrap}
+
+.pl .c-obs{white-space:normal;max-width:240px}
+.pl .c-obs div{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pl .c-go{width:70px;text-align:right;white-space:nowrap}
+.pl td.c-go span{font-size:11.5px;font-weight:700;color:var(--brand);background:rgba(30,147,80,.1);padding:4px 9px;border-radius:8px;opacity:.45;transition:opacity .15s}
+.pl tbody tr:hover td.c-go span{opacity:1}
+.pl tbody tr:hover td{box-shadow:inset 0 1px 0 rgba(30,147,80,.15),inset 0 -1px 0 rgba(30,147,80,.15)}
 </style>
 </head>
 <body>
@@ -682,7 +689,7 @@ function atencao(L, span){
   return `<div class="tile ${span}"><h3>Maiores atrasos <small>dias além da data prevista</small></h3>
     <div class="${span==='c12'?'alerts2':''}">${top.length ? top.map(a=>`<div class="alert" data-n="${a.n}">
       <div class="dd"><div><b>${a.diasAtraso}</b><small>dias</small></div></div>
-      <div><div class="at">${esc(a.desc)}</div><div class="am">${aba==='geral'?`<span class="tag">${ORIGENS[a.o].nome}</span>`:''}${esc(a.dep)} · previsto ${fmt(a.prev)}</div></div></div>`).join('')
+      <div><div class="at">${esc(a.desc)}</div><div class="am">${!ORIGENS[aba]?`<span class="tag">${ORIGENS[a.o].nome}</span>`:''}${esc(a.dep)} · previsto ${fmt(a.prev)}</div></div></div>`).join('')
       : '<div class="empty">Nenhuma ação vencida 🎉</div>'}</div>
   </div>`;
 }
@@ -922,13 +929,13 @@ function renderPlanilha(){
       <button class="flimpa" id="plX" type="button" ${TB.q||TB.o||TB.st||TB.dep||TB.local?'':'hidden'}>✕ Limpar</button>
     </div>
     <div class="pl-info"><b id="plN"></b><span id="plMsg"></span></div>
-    <div class="pl-wrap tile"><table class="pl"><thead><tr>${COLS.map(([k,l])=>`<th data-k="${k}" class="${TB.k===k?(TB.asc?'asc':'desc'):''}">${l}</th>`).join('')}</tr></thead><tbody id="plB"></tbody></table></div>`;
+    <div class="pl-wrap tile"><table class="pl"><thead><tr>${COLS.map(([k,l])=>`<th data-k="${k}" class="${TB.k===k?(TB.asc?'asc':'desc'):''}">${l}</th>`).join('')}<th class="c-go"></th></tr></thead><tbody id="plB"></tbody></table></div>`;
   corpoPlanilha();
   const on = (id, ev, fn) => document.getElementById(id)[ev] = fn;
   on('plQ','oninput', e => { TB.q = e.target.value; corpoPlanilha(); document.getElementById('plX').hidden = !(TB.q||TB.o||TB.st||TB.dep||TB.local); });
   [['plO','o'],['plS','st'],['plD','dep'],['plL','local']].forEach(([id,k]) => on(id,'onchange', e => { TB[k] = e.target.value; renderPlanilha(); }));
   on('plX','onclick', () => { TB = {...TB, q:'', o:'', st:'', dep:'', local:''}; renderPlanilha(); });
-  document.querySelectorAll('.pl th').forEach(th => th.onclick = () => { const k=th.dataset.k; TB.asc = TB.k===k ? !TB.asc : true; TB.k = k; renderPlanilha(); });
+  document.querySelectorAll('.pl th[data-k]').forEach(th => th.onclick = () => { const k=th.dataset.k; TB.asc = TB.k===k ? !TB.asc : true; TB.k = k; renderPlanilha(); });
   on('plCsv','onclick', baixarCSV);
   on('plCopy','onclick', copiarTabela);
   document.querySelectorAll('[data-ano]').forEach(b => b.onclick = () => { filtro.ano = b.dataset.ano; filtro.de=''; filtro.ate=''; render(); });
@@ -948,8 +955,8 @@ function corpoPlanilha(){
       <td class="num" style="${a.s==='atrasada'?'color:var(--atr);font-weight:700':''}">${a.prev?fmt(a.prev):'<span class="sd">a definir</span>'}</td>
       <td class="num">${fmt(a.term)}</td>
       <td><span class="pill ${cl}">${st}${a.s==='atrasada'?' · '+a.diasAtraso+'d':''}</span></td>
-      <td class="c-obs" title="${esc(a.obs)}">${esc(a.obs)}</td></tr>`; }).join('')
-    : `<tr><td colspan="${COLS.length}" class="empty">Nenhuma ação com esses filtros.</td></tr>`;
+      <td class="c-obs" title="${esc(a.obs)}"><div>${esc(a.obs)||'—'}</div></td><td class="c-go"><span>Abrir ›</span></td></tr>`; }).join('')
+    : `<tr><td colspan="${COLS.length+1}" class="empty">Nenhuma ação com esses filtros.</td></tr>`;
   document.querySelectorAll('#plB tr[data-i]').forEach(tr => tr.onclick = () => {
     const a = TB.vis[+tr.dataset.i]; gaveta('Ação nº '+a.n, [a], 'todas', ''); expandir(document.querySelector('#lista .ac'));
   });
@@ -1045,7 +1052,7 @@ function gaveta(titulo, base, sit, dep){
   dw = {titulo, base, sit, dep, q:''};
   document.getElementById('busca').value='';
   document.getElementById('drT').textContent = titulo;
-  document.getElementById('drS').textContent = (aba==='geral' ? 'Todas as origens' : ORIGENS[aba].nome) + (temFiltro() ? ' · '+rotuloFiltro()+' ('+BASES[filtro.base].toLowerCase()+')' : '');
+  document.getElementById('drS').textContent = (!ORIGENS[aba] ? 'Todas as origens' : ORIGENS[aba].nome) + (temFiltro() ? ' · '+rotuloFiltro()+' ('+BASES[filtro.base].toLowerCase()+')' : '');
   const deps = [...new Set(base.map(a=>a.dep))].sort();
   document.getElementById('fDep').innerHTML = `<option value="">Todos os departamentos</option>` + deps.map(d=>`<option ${d===dep?'selected':''}>${esc(d)}</option>`).join('');
   lista();
@@ -1069,7 +1076,7 @@ function lista(){
     const extra = a.s==='atrasada' ? ` · ${a.diasAtraso} dias` : '';
     const ab = a.grupo!=='concluida' && idade(a)!==null ? `<span>Aberta há <b class="num">${idade(a)}</b> dias</span>` : '';
     return `<div class="ac" data-i="${idx}" tabindex="0" role="button" aria-expanded="false">
-      <div class="ttl">${aba==='geral'?`<span class="tag">${ORIGENS[a.o].nome}</span>`:''}${a.hist?'<span class="tag hist">Histórico</span>':''}${(a.fotos||[]).length?`<span class="tag foto">📷 ${a.fotos.length}</span>`:''}${esc(a.desc)}</div>
+      <div class="ttl">${!ORIGENS[aba]?`<span class="tag">${ORIGENS[a.o].nome}</span>`:''}${a.hist?'<span class="tag hist">Histórico</span>':''}${(a.fotos||[]).length?`<span class="tag foto">📷 ${a.fotos.length}</span>`:''}${esc(a.desc)}</div>
       <span class="pill ${cl}">${st}${extra}</span>
       <div class="meta"><span>Nº <b class="num">${a.n}</b></span><span>Responsável <b>${esc(a.dep)}</b></span>${a.local?`<span>Local <b>${esc(a.local)}</b></span>`:''}
         <span>Origem <b class="num">${fmt(a.do)}</b></span><span>Prevista <b class="num" style="${a.s==='atrasada'?'color:var(--atr)':''}">${a.prev?fmt(a.prev):'sem data'}</b></span>${a.term?`<span>Término <b class="num">${fmt(a.term)}</b></span>`:''}${ab}</div>
