@@ -46,7 +46,7 @@ def registrar_novidades(anterior, atuais, caminho, quando):
             if b is None:
                 ev.append(dict(base(a), tipo='nova', para=a.get('prev')))
             elif a.get('term') and not b.get('term'):
-                ev.append(dict(base(a), tipo='concluida', para=a['term']))
+                ev.append(dict(base(a), tipo='concluida', para=a['term'], **({'por': a['por']} if a.get('por') else {})))
             elif not a.get('term') and b.get('term'):
                 ev.append(dict(base(a), tipo='reaberta', de=b['term']))
             elif a.get('prev') != b.get('prev'):
@@ -90,6 +90,20 @@ def main(xlsx, saida, pasta_fotos='fotos'):
             if a.get('hist') and a['desc'] not in ja:
                 a = {k: v for k, v in a.items() if k != 'fotos'}; out.append(a); nh += 1
         print('  aba CONCLUÍDOS ausente: histórico anterior mantido')
+    # quem concluiu (aba RESPONDENTES, gerada pelo robô a partir das respostas do formulário — só nomes)
+    resp = next((w for w in wb.worksheets if w.title.upper().startswith('RESPONDENTES')), None)
+    if resp is not None:
+        por = {}
+        for r in resp.iter_rows(min_row=2, values_only=True):
+            if r and r[0] is not None and r[1]: por[str(r[0]).strip().upper()] = txt(r[1])
+        for a in out:
+            if not a.get('hist') and a.get('term') and str(a['n']).upper() in por:
+                a['por'] = por[str(a['n']).upper()]
+    elif anterior:
+        # sem a aba: mantém quem já estava registrado
+        antpor = {str(x['n']): x['por'] for x in anterior.get('acoes', []) if x.get('por')}
+        for a in out:
+            if a.get('term') and str(a['n']) in antpor: a['por'] = antpor[str(a['n'])]
     fm = fotos_por_acao(pasta_fotos)
     for a in out:
         a['fotos'] = fm.get(str(a['n']).upper(), [])

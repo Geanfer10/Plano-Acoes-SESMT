@@ -626,7 +626,7 @@ table.stxt{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px
 .nv-chips{display:flex;gap:8px;flex-wrap:wrap}
 .nv-chip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid rgba(18,38,27,.08);border-radius:20px;padding:4px 11px;font-weight:600;font-size:12.5px}
 .nv-chip b{font-family:var(--mono)}
-.nv-ver{margin-left:auto;border:0;background:var(--brand);color:#fff;font-family:inherit;font-weight:700;font-size:12.5px;padding:7px 14px;border-radius:10px;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.nv-ver{margin-left:4px;border:0;background:var(--brand);color:#fff;font-family:inherit;font-weight:700;font-size:12.5px;padding:7px 14px;border-radius:10px;cursor:pointer;transition:transform .15s,box-shadow .15s}
 .nv-ver:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(22,122,68,.3)}
 .ic-ok{color:var(--ok)}.ic-data{color:var(--and)}.ic-nova{color:var(--brand)}.ic-rem{color:var(--mute)}.ic-rea{color:var(--atr)}
 .nv-dia{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mute);padding:12px 12px 4px}
@@ -637,7 +637,7 @@ table.stxt{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px
 .nv-n{font-weight:700;color:var(--sub);font-family:var(--mono);font-size:12.5px}
 .nv-t{font-weight:600;font-size:13px;line-height:1.35}.nv-t small{display:block;color:var(--sub);font-weight:500;font-size:11.5px;margin-top:2px}
 .nv-o{font-size:12.5px;font-weight:600;text-align:right;white-space:nowrap}
-@media(max-width:640px){.novb{padding:9px 14px}.nv-ver{margin-left:0}.nv-it{grid-template-columns:24px 1fr}.nv-n,.nv-o{grid-column:2}}
+@media(max-width:640px){.novb{padding:9px 14px}.nv-it{grid-template-columns:24px 1fr}.nv-n,.nv-o{grid-column:2}}
 </style>
 </head>
 <body>
@@ -1024,7 +1024,7 @@ function nvVisto(){ try { return localStorage.getItem(NV_KEY) || ''; } catch(e){
 function nvMarcar(q){ try { localStorage.setItem(NV_KEY, q); } catch(e){} }
 function nvAcao(e){ return ACOES.find(a => String(a.n)===String(e.n)) || ACOES.find(a => a.desc===e.desc); }
 function nvDesc(e){
-  if(e.tipo==='concluida') return `Concluída${e.para?' em '+fmt(e.para):''}`;
+  if(e.tipo==='concluida') return `Concluída${e.para?' em '+fmt(e.para):''}${e.por?'<small style="display:block;color:var(--sub);font-weight:500">por '+esc(e.por)+'</small>':''}`;
   if(e.tipo==='data') return `${e.de?fmt(e.de):'Sem data'} → <b>${e.para?fmt(e.para):'sem data'}</b>`;
   if(e.tipo==='nova') return 'Entrou no plano'+(e.para?' · prevista '+fmt(e.para):'');
   if(e.tipo==='reaberta') return 'Data de término retirada';
@@ -1514,7 +1514,7 @@ function detalhe(a){
       ${campo('Local', esc(a.local)||'—')}
       ${campo('Data de origem', `<span class="num">${fmt(a.do)}</span>`)}
       ${campo('Data prevista', a.prev?`<span class="num">${fmt(a.prev)}</span>`:'sem data')}
-      ${campo('Data de término', a.term?`<span class="num">${fmt(a.term)}</span>`:'—')}
+      ${campo('Data de término', a.term?`<span class="num">${fmt(a.term)}</span>${a.por?`<small style="display:block;font-weight:500;color:var(--sub);font-size:11.5px;margin-top:2px">por ${esc(a.por)}</small>`:''}`:'—')}
       ${campo('Status', `<span class="pill ${cl}">${st}</span>`)}
     </div>
     <div class="fotos"><span>Registro fotográfico</span>${(a.fotos||[]).length
