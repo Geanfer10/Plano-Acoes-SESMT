@@ -15,6 +15,19 @@ def linha(n,orig,do,desc,local,resp,prev,term,obs,hist):
                 prev=d(prev),term=d(term),obs=txt(obs),hist=hist)
 
 import re
+def data_livre(v):
+    """Data vinda do formulário: datetime, '2026-11-13', '11/13/2026' (Forms) ou '13/11/2026'."""
+    if hasattr(v, 'strftime'): return v.strftime('%Y-%m-%d')
+    t = txt(v)
+    m = re.match(r'^(\d{4})-(\d{2})-(\d{2})', t)
+    if m: return '-'.join(m.groups())
+    m = re.match(r'^(\d{1,2})/(\d{1,2})/(\d{4})', t)
+    if m:
+        a, b, y = int(m.group(1)), int(m.group(2)), m.group(3)
+        mes, dia = (a, b) if a <= 12 and b > 12 else (b, a) if b <= 12 else (a, b)
+        return f'{y}-{mes:02d}-{dia:02d}'
+    return None
+
 FOTO_RE = re.compile(r'^(H?\d+)(?:[-_ ].*)?\.(jpe?g|png|webp)$', re.I)
 def fotos_por_acao(pasta):
     """fotos/274.jpg, fotos/274-2.jpg, fotos/H12.png -> {'274': ['fotos/274.jpg', ...]}"""
@@ -104,6 +117,23 @@ def main(xlsx, saida, pasta_fotos='fotos'):
         antpor = {str(x['n']): x['por'] for x in anterior.get('acoes', []) if x.get('por')}
         for a in out:
             if a.get('term') and str(a['n']) in antpor: a['por'] = antpor[str(a['n'])]
+    # respostas do formulário ainda não lançadas no MASTER PLAN (aba PENDENTES, gerada pelo robô)
+    pen = next((w for w in wb.worksheets if w.title.upper().startswith('PENDENTES')), None)
+    if pen is not None:
+        idx = {str(a['n']).upper(): a for a in out if not a.get('hist')}
+        np_ = 0
+        for r in pen.iter_rows(min_row=2, values_only=True):
+            if not r or r[0] is None: continue
+            a = idx.get(str(r[0]).strip().upper())
+            if not a: continue
+            sit, dinf = txt(r[3]), data_livre(r[4])
+            # já lançado na prática (Beatriz esqueceu de marcar "Lançado")? então não mostra
+            if sit.upper().startswith('CONCLU') and a.get('term'): continue
+            if not sit.upper().startswith('CONCLU') and dinf and dinf == a.get('prev'): continue
+            em = r[2].strftime('%Y-%m-%dT%H:%M') if hasattr(r[2], 'strftime') else txt(r[2])
+            a['resp'] = dict(nome=txt(r[1]), em=em, sit=sit, data=dinf, obs=txt(r[5]))
+            np_ += 1
+        print(f'{np_} resposta(s) aguardando lançamento')
     fm = fotos_por_acao(pasta_fotos)
     for a in out:
         a['fotos'] = fm.get(str(a['n']).upper(), [])

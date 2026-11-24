@@ -638,6 +638,14 @@ table.stxt{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px
 .nv-t{font-weight:600;font-size:13px;line-height:1.35}.nv-t small{display:block;color:var(--sub);font-weight:500;font-size:11.5px;margin-top:2px}
 .nv-o{font-size:12.5px;font-weight:600;text-align:right;white-space:nowrap}
 @media(max-width:640px){.novb{padding:9px 14px}.nv-it{grid-template-columns:24px 1fr}.nv-n,.nv-o{grid-column:2}}
+
+/* respostas do formulário aguardando lançamento */
+.rsp{margin:12px 0 4px;border:1px solid rgba(47,111,235,.25);background:rgba(47,111,235,.07);border-radius:12px;padding:11px 14px;font-size:13px;line-height:1.45}
+.rsp b.t{display:flex;align-items:center;gap:7px;color:var(--and);font-size:12px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.rsp small{color:var(--sub)}
+.tag.rsp-t{background:rgba(47,111,235,.12);color:var(--and)}
+.nv-chip.nv-rsp{cursor:pointer;border-color:rgba(47,111,235,.35);color:var(--and);font-family:inherit}
+.nv-chip.nv-rsp:hover{background:rgba(47,111,235,.08)}
 </style>
 </head>
 <body>
@@ -1032,15 +1040,23 @@ function nvDesc(e){
 }
 function renderNovidades(){
   const el = document.getElementById('novb'); const E = nvRecentes();
-  if(!E.length){ el.hidden = true; return; }
+  const P = ACOES.filter(a => a.resp);
+  if(!E.length && !P.length){ el.hidden = true; return; }
   el.hidden = false;
+  const rspChip = P.length ? `<button type="button" class="nv-chip nv-rsp" id="nvRsp" title="Ver as ações com resposta aguardando lançamento">✉ <b>${P.length}</b> ${P.length>1?'respostas aguardando lançamento':'resposta aguardando lançamento'}</button>` : '';
+  if(!E.length){
+    el.innerHTML = `<span class="nv-lbl">Novidades no plano</span><span class="nv-chips">${rspChip}</span>`;
+    document.getElementById('nvRsp').onclick = () => gaveta('Respostas aguardando lançamento', P, 'todas', '');
+    return;
+  }
   const ult = E[0].quando, novo = ult > nvVisto();
   const cont = {}; E.forEach(e => cont[e.tipo] = (cont[e.tipo]||0)+1);
   const quando = new Date(ult).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
   el.innerHTML = `<span class="nv-lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>Novidades no plano${novo?'<span class="nv-dot">NOVO</span>':''}</span>
     <span class="nv-quando">últimos 7 dias · atualizado ${quando}</span>
     <span class="nv-chips">${Object.keys(NV_TIPOS).filter(t=>cont[t]).map(t=>`<span class="nv-chip"><span class="${NV_TIPOS[t].cls}">${NV_TIPOS[t].ic}</span><b>${cont[t]}</b> ${NV_TIPOS[t].rot[cont[t]>1?1:0]}</span>`).join('')}</span>
-    <button class="nv-ver" id="nvVer" type="button">Ver detalhes</button>`;
+    <button class="nv-ver" id="nvVer" type="button">Ver detalhes</button>${rspChip}`;
+  if(P.length) document.getElementById('nvRsp').onclick = () => gaveta('Respostas aguardando lançamento', P, 'todas', '');
   document.getElementById('nvVer').onclick = () => { nvMarcar(ult); abrirNovidades(E); renderNovidades(); };
 }
 let NVW;
@@ -1464,7 +1480,7 @@ function lista(){
     const extra = a.s==='atrasada' ? ` · ${a.diasAtraso} dias` : '';
     const ab = a.grupo!=='concluida' && idade(a)!==null ? `<span>Aberta há <b class="num">${idade(a)}</b> dias</span>` : '';
     return `<div class="ac" data-i="${idx}" tabindex="0" role="button" aria-expanded="false">
-      <div class="ttl">${!ORIGENS[aba]?`<span class="tag">${ORIGENS[a.o].nome}</span>`:''}${a.hist?'<span class="tag hist">Histórico</span>':''}${(a.fotos||[]).length?`<span class="tag foto">📷 ${a.fotos.length}</span>`:''}${esc(a.desc)}</div>
+      <div class="ttl">${!ORIGENS[aba]?`<span class="tag">${ORIGENS[a.o].nome}</span>`:''}${a.hist?'<span class="tag hist">Histórico</span>':''}${(a.fotos||[]).length?`<span class="tag foto">📷 ${a.fotos.length}</span>`:''}${a.resp?'<span class="tag rsp-t">✉ Resposta recebida</span>':''}${esc(a.desc)}</div>
       <span class="pill ${cl}">${st}${extra}</span>
       <div class="meta"><span>Nº <b class="num">${a.n}</b></span><span>Responsável <b>${esc(a.dep)}</b></span>${a.local?`<span>Local <b>${esc(a.local)}</b></span>`:''}
         <span>Origem <b class="num">${fmt(a.do)}</b></span><span>Prevista <b class="num" style="${a.s==='atrasada'?'color:var(--atr)':''}">${a.prev?fmt(a.prev):'sem data'}</b></span>${a.term?`<span>Término <b class="num">${fmt(a.term)}</b></span>`:''}${ab}</div>
@@ -1505,7 +1521,13 @@ function detalhe(a){
     tl = `<div class="tl"><div class="tl-cap">${dT?`Concluída em ${dias(dO,dT)} dias após a abertura`:`Aberta há ${dias(dO,HOJE)} dias · sem prazo definido`}</div></div>`;
   }
   const campo = (l,v) => `<div><em>${l}</em><b>${v}</b></div>`;
+  const R = a.resp;
+  const rsp = R ? `<div class="rsp"><b class="t">✉ Resposta recebida · aguardando lançamento</b>
+      <b>${esc(R.sit||'Atualização')}</b>${R.data?` — ${R.sit&&R.sit.toUpperCase().startsWith('CONCLU')?'concluída em':'nova data'} <b class="num">${fmt(R.data)}</b>`:''}
+      ${R.obs?`<div>“${esc(R.obs)}”</div>`:''}
+      <small>Enviada${R.nome?' por '+esc(R.nome):''}${R.em?' em '+fmt(R.em.slice(0,10))+(R.em.length>10?' às '+R.em.slice(11,16):''):''} pelo formulário. O SESMT vai lançar no plano.</small></div>` : '';
   return `<div class="situ" style="--c:${cor}">${situ}</div>
+    ${rsp}
     ${tl}
     <div class="grid">
       ${campo('Nº da ação', `<span class="num">${a.n}</span>`)}
