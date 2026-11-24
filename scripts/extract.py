@@ -141,7 +141,21 @@ def main(xlsx, saida, pasta_fotos='fotos'):
     pacote={'gerado_em':datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
             'arquivo':os.path.basename(xlsx),'acoes':out}
     os.makedirs(os.path.dirname(saida) or '.',exist_ok=True)
-    registrar_novidades(anterior, out, os.path.join(os.path.dirname(saida) or '.', 'novidades.json'), pacote['gerado_em'])
+    caminho_nov = os.path.join(os.path.dirname(saida) or '.', 'novidades.json')
+    registrar_novidades(anterior, out, caminho_nov, pacote['gerado_em'])
+    # resposta já lançada: se a data prevista/término da ação mudou DEPOIS da resposta, tira o selo
+    nov = carregar(caminho_nov) or {'eventos': []}
+    mudou = {}
+    for e in nov.get('eventos', []):
+        if e.get('tipo') in ('data', 'concluida', 'reaberta'):
+            q = datetime.datetime.fromisoformat(e['quando']) - datetime.timedelta(hours=3)   # UTC -> Brasília
+            q = q.strftime('%Y-%m-%dT%H:%M')
+            k = str(e['n'])
+            mudou[k] = max(mudou.get(k, ''), q)
+    for a in out:
+        r = a.get('resp')
+        if r and mudou.get(str(a['n']), '') > (r.get('em') or ''):
+            del a['resp']
     json.dump(pacote,open(saida,'w',encoding='utf-8'),ensure_ascii=False)
     print(f'{len(out)} ações ({nh} do histórico CONCLUÍDOS)')
 
